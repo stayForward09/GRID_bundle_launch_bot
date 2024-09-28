@@ -5,7 +5,7 @@
 export const menu = async (ctx: any) => {
     const text = `<b>Snipers</b>\n` + `Select a token to manage snipers for.\n`
 
-    // Send message with the import wallet button
+    
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {

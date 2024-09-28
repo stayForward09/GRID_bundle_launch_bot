@@ -5,7 +5,7 @@
 export const menu = async (ctx: any) => {
     const text = `<b>Referrals</b>\n` + `Get started by creating a referral code.\n`
 
-    // Send message with the import wallet button
+    
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {

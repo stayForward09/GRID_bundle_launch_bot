@@ -9,12 +9,17 @@ import tokensCommands from './commands/tokens'
 import snipersCommands from './commands/snipers'
 import deployersCommands from './commands/deployers'
 import referralsCommands from './commands/referrals'
+import { tokenNameEditorScene, tokenSymbolEditorScene, tokenSupplyEditorScene, tokenMaxSwapEditorScene, tokenMaxWalletEditorScene, tokenLpEthEditorScene, tokenLpSupplyEditorScene, tokenContractFundsEditorScene } from './scenes'
 
 export default () => {
     const _bot = new Telegraf(process.env.BOT_TOKEN, {
         handlerTimeout: 9_000_000 // 2.5 hours in milliseconds
     })
-    _bot.use(session())
+    //@ts-expect-error scene
+    const stages = new Scenes.Stage([tokenNameEditorScene, tokenSymbolEditorScene, tokenSupplyEditorScene, tokenMaxSwapEditorScene, tokenMaxWalletEditorScene, tokenLpEthEditorScene, tokenLpSupplyEditorScene, tokenContractFundsEditorScene])
+    _bot.use(session({ defaultSession: () => ({ currentSelectType: '' }) }));
+    // use tg scene's middlewares
+    _bot.use(stages.middleware())
     //set commands
     const commands = [
         { command: '/start', description: 'start' },

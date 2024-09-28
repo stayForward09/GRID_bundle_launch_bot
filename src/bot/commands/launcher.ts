@@ -1,4 +1,5 @@
 import { menu } from '@/bot/controllers/launcher'
+import { create_launch } from '../controllers/launcher/createLaunch.controller'
 
 export default (_bot: any) => {
     /**
@@ -6,9 +7,4 @@ export default (_bot: any) => {
      * launcher menu function
      */
     _bot.command('launcher', menu)
-    /**
-     * @action start
-     * start function
-     */
-    _bot.action('launcher', menu)
 }
