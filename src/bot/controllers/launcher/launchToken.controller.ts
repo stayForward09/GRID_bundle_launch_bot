@@ -76,17 +76,40 @@ export const previewLaunch = async (ctx: any, id: string) => {
 }
 
 // Step 1: Compile the contract using solc
-const compileContract = () => {
+const compileContract = ({
+    name,
+    symbol,
+    totalSupply,
+    sellFee,
+    buyFee,
+    liquidityFee,
+    instantLaunch,
+    feeWallet,
+}) => {
+
+    console.log(feeWallet, instantLaunch)
     const contractPath = path.resolve(__dirname, "../../../constants/contracts/token.sol"); // Path to your Solidity file
     const source = fs.readFileSync(contractPath, 'utf8'); // Read the contract file
     // todo make source code
     const sourceCode = source;
+    const _symbol = symbol.replace(/\s/g, ''); //remove all space from symbol string
+
+    let _sourceCode = sourceCode;
+    _sourceCode = _sourceCode.replace(/CONTRACT_SYMBOL/g, _symbol);
+    _sourceCode = _sourceCode.replace(/CONTRACT_NAME/g, name);
+    _sourceCode = _sourceCode.replace(/CONTRACT_TOTAL_SUPPLY/g, totalSupply);
+    _sourceCode = _sourceCode.replace(/CONTRACT_BUY_FEE/g, buyFee);
+    _sourceCode = _sourceCode.replace(/CONTRACT_SELL_FEE/g, sellFee);
+    _sourceCode = _sourceCode.replace(/CONTRACT_LP_FEE/g, liquidityFee);
+    _sourceCode = _sourceCode.replace("CONTRACT_INSTANT_LAUNCH_ENABLED", instantLaunch ? 'uniPair = IUniswapV2Factory(_router.factory()).getPair(address(this), _router.WETH());' : "")
+    _sourceCode = _sourceCode.replace("CONTRACT_FEE_WALLET", feeWallet)
+
     // Solc input and settings
     const input = {
         language: 'Solidity',
         sources: {
-            'token.sol': {
-                content: sourceCode
+            [`${_symbol}.sol`]: {
+                content: _sourceCode
             }
         },
         settings: {
@@ -99,10 +122,14 @@ const compileContract = () => {
     };
     // Compile the contract
     const compiledContract = JSON.parse(solc.compile(JSON.stringify(input)));
-    const contractFile = compiledContract.contracts['token.sol']['Bavy'];
+    const contractFile = compiledContract.contracts[`${_symbol}.sol`][_symbol];
     const abi = contractFile.abi;
     const bytecode = contractFile.evm.bytecode.object;
-    return { abi, bytecode, sourceCode };
+    return {
+        abi,
+        bytecode,
+        sourceCode: _sourceCode
+    };
 };
 
 
@@ -117,7 +144,16 @@ export const tokenLaunch = async (ctx: any, id: string) => {
         return;
     }
     try {
-        const { abi, bytecode, sourceCode } = compileContract();
+        const { abi, bytecode, sourceCode } = compileContract({
+            name: launch.name,
+            symbol: launch.symbol,
+            totalSupply: launch.totalSupply,
+            sellFee: launch.sellFee,
+            buyFee: launch.buyFee,
+            liquidityFee: launch.liquidityFee,
+            instantLaunch: launch.instantLaunch,
+            feeWallet: launch.feeWallet == "Deployer Wallet" ? launch.deployer.address : launch.feeWallet
+        });
         const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC);
         const _privteKey = decrypt(launch.deployer.key);
         // Set your wallet's private key (Use environment variables or .env in real apps)
@@ -156,9 +192,9 @@ export const tokenLaunch = async (ctx: any, id: string) => {
             // contract data
             address: deploymentReceipt.contractAddress,
             verified: false,
-            abi: String(abi),
-            byteCode: String(bytecode),
-            sourceCode: String(sourceCode)
+            abi: JSON.stringify(abi),
+            byteCode: bytecode,
+            sourceCode: sourceCode
         }).save();
         await ctx.reply(
             `<b>✔ Contract has been deployed successfully.</b>\n\n` +

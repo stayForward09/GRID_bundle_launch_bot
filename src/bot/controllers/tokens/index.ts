@@ -1,9 +1,7 @@
-import Launches from "@/models/Launch";
 import Tokens from "@/models/Tokens";
 
 export const menu = async (ctx: any) => {
     const _tokens = await Tokens.find({ userId: ctx.chat.id });
-    console.log(_tokens, ctx.chat.id)
     const text =
         `<b>Manage Token</b>\nSelect a Token that you have launched.`;
     const tokens = [];

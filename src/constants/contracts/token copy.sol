@@ -262,7 +262,7 @@ interface IUniswapV2Router02 {
     function swapExactTokensForETHSupportingFeeOnTransferTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external;
 }
 
-contract CONTRACT_SYMBOL is ERC20, Ownable {
+contract Bavy is ERC20, Ownable {
     using SafeMath for uint256;
 
     // IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24); // Base Mainnet
@@ -290,25 +290,25 @@ contract CONTRACT_SYMBOL is ERC20, Ownable {
 
     event FeeSwap(uint256 indexed value);
 
-    constructor() payable ERC20('CONTRACT_NAME', 'CONTRACT_SYMBOL') {
-        uint256 totalSupply = CONTRACT_TOTAL_SUPPLY * 1e18;
+    constructor() payable ERC20('Davee Baby', 'Bavy') {
+        uint256 totalSupply = 1000000000 * 1e18;
 
         maxSwapTxSize = totalSupply.mul(1).div(100);
         maxHoldings = totalSupply.mul(10).div(100);
         feeThresholdSize = totalSupply.mul(5).div(1000);
 
-        feeRecipientAddress = CONTRACT_FEE_WALLET;
+        feeRecipientAddress = 0xeEc5B3f84A22177f159572368bae26440D11adA6;
 
-        buyTax = CONTRACT_BUY_FEE;
-        sellTax = CONTRACT_SELL_FEE;
-        lpFeePercent = CONTRACT_LP_FEE;
+        buyTax = 2;
+        sellTax = 3;
+        lpFeePercent = 3;
 
         _isExcludedFromLimits[feeRecipientAddress] = true;
         _isExcludedFromLimits[msg.sender] = true;
         _isExcludedFromLimits[tx.origin] = true;
         _isExcludedFromLimits[address(this)] = true;
         _isExcludedFromLimits[address(0xdead)] = true;
-        CONTRACT_INSTANT_LAUNCH_ENABLED
+        // uniPair = IUniswapV2Factory(_router.factory()).getPair(address(this), _router.WETH());
 
         _mint(tx.origin, totalSupply);
     }
