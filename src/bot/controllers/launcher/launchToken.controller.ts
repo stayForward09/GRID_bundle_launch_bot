@@ -1,13 +1,10 @@
 import Launches from "@/models/Launch";
 
 export const menu = async (ctx: any) => {
-
     const _launches = await Launches.find({ userId: ctx.chat.id, enabled: true });
     const text =
         `<b>Select a Launch:</b>\n`;
-
     const tokens = [];
-
     for (let i = 0; i < _launches.length; i += 2) {
         const element = (i + 1 >= Launches.length) ?
             [
@@ -19,7 +16,6 @@ export const menu = async (ctx: any) => {
             ];
         tokens.push(element);
     }
-
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {
@@ -31,7 +27,6 @@ export const menu = async (ctx: any) => {
         }
     })
 }
-
 /**
  * preview launch
  * @param ctx 
@@ -53,7 +48,6 @@ export const previewLaunch = async (ctx: any, id: string) => {
             `<i>Max Wallet:</i> ${launch.maxWallet}\n` +
             `<i>Max Swap:</i> ${launch.maxSwap}\n` +
             `<i>Fee Wallet:</i> ${launch.feeWallet}\n`;
-
         ctx.reply(text, {
             parse_mode: 'HTML',
             reply_markup: {
@@ -70,7 +64,6 @@ export const previewLaunch = async (ctx: any, id: string) => {
     } else {
         ctx.reply('no launch')
     }
-
 }
 /**
  * token launch
@@ -94,7 +87,6 @@ export const tokenLaunch = async (ctx: any, id: string) => {
             `<i>Max Swap:</i> ${launch.maxSwap}\n` +
             `<i>Fee Wallet:</i> ${launch.feeWallet}\n`;
 
-
         ctx.reply(text, {
             parse_mode: 'HTML',
             reply_markup: {
@@ -111,5 +103,4 @@ export const tokenLaunch = async (ctx: any, id: string) => {
     } else {
         ctx.reply('no launch')
     }
-
 }
