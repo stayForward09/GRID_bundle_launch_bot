@@ -14,7 +14,6 @@ export const menu = async (ctx: any) => {
         `<b>Select a Launch:</b>\n`;
     const tokens = [];
 
-    console.log(_launches.length)
     for (let i = 0; i < _launches.length; i += 2) {
         const element = (i + 1 >= _launches.length) ?
             [
@@ -113,9 +112,7 @@ const compileContract = () => {
  * @param id 
  */
 export const tokenLaunch = async (ctx: any, id: string) => {
-    id = "66fa54b4c71891c5b7e3814d"
     const launch = await Launches.findById(id);
-
     if (!launch) {
         return;
     }
@@ -144,7 +141,7 @@ export const tokenLaunch = async (ctx: any, id: string) => {
         await ctx.reply(
             `<b>✔ Contract has been deployed successfully.</b>\n\n` +
             `<b>Address: </b><code>${deploymentReceipt.contractAddress}</code>\n` +
-            `<u><a href='${CHAIN_INFO}/address/${deploymentReceipt.contractAddress}'>👁 Go to contract</a><u>`,
+            `<u><a href='${CHAIN_INFO}/address/${deploymentReceipt.contractAddress}'>👁 Go to contract</a></u>`,
             {
                 parse_mode: 'HTML',
                 reply_markup: {
@@ -159,6 +156,7 @@ export const tokenLaunch = async (ctx: any, id: string) => {
                 }
             });
     } catch (err) {
+        console.log(err)
         if (String(err).includes("insufficient funds for intrinsic transaction cost")) {
             await ctx.reply(`<b>❌ Deployment failed.</b>\n\nTry again with an increased bribe boost of 20% (every time you try again, the bribe boost is increased by 20% from the previous try)`, {
                 parse_mode: 'HTML',
