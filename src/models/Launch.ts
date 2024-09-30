@@ -50,10 +50,14 @@ const LaunchSchema: Schema = new Schema({
     },
     /////// token variables
     name: {
-        type: String, default: "New Token"
+        type: String,
+        require: true,
+        default: "New Token",
     },
     symbol: {
-        type: String, default: "NT"
+        type: String,
+        require: true,
+        default: "NT"
     },
     totalSupply: {
         type: Number, default: 1000000000

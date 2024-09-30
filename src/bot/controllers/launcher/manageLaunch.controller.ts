@@ -11,7 +11,7 @@ export const menu = async (ctx: any) => {
     const tokens = [];
 
     for (let i = 0; i < _launches.length; i += 2) {
-        const element = (i + 1 >= Launches.length) ?
+        const element = (i + 1 >= _launches.length) ?
             [
                 { text: _launches[i].name, callback_data: `edit_launch_${_launches[i].id}` },
             ] :
