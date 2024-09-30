@@ -1,8 +1,8 @@
-import { token_distribution } from "."
+import { fee_settings } from "."
 import Launches from "@/models/Launch"
 
 export const enterScene = async (ctx: any) => {
-    ctx.reply(`<b>Enter the amount of LP ETH  </b>\n` + `This is the amount of ETH you want your liquidity pool to start with. \n` + `<i>(example: 5 or 10)</i>`, {
+    ctx.reply(`<b>Enter your swap threshold (in %) </b>\n` + `This is the amount of supply that needs to be in the contract address before it will swap for ETH.\n` + `<i>(example: 5 or 10)</i>`, {
         parse_mode: 'HTML',
         reply_markup: {
             force_reply: true,
@@ -15,7 +15,7 @@ export const enterScene = async (ctx: any) => {
 export const textHandler = async (ctx: any) => {
     const _value = Number(ctx.message.text);
     if (isNaN(_value)) {
-        ctx.reply(`<b>Invalid Number</b> LP ETH should be number (percent)` + `<i>(example: 0.5 or 2)</i>`, {
+        ctx.reply(`<b>Invalid Number</b> Swap threshold should be number (percent)` + `<i>(example: 0.1 or 1)</i>`, {
             parse_mode: 'HTML',
             reply_markup: {
                 force_reply: true,
@@ -23,8 +23,8 @@ export const textHandler = async (ctx: any) => {
                 resize_keyboard: true
             }
         })
-    } else if (_value < 0) {
-        ctx.reply(`LP supply must be greater than 0.001`, {
+    } else if (_value > 2 || _value < 0.001) {
+        ctx.reply(`Swap Threshold must be greater than 0.001 and less than 2.`, {
             parse_mode: 'HTML',
             reply_markup: {
                 force_reply: true,
@@ -35,11 +35,10 @@ export const textHandler = async (ctx: any) => {
     } else {
         await Launches.findOneAndUpdate(
             { userId: ctx.chat.id, enabled: false },
-            { lpEth: _value },
+            { swapThreshold: _value },
             { new: true, upsert: true }
         );
         await ctx.scene.leave();
-        token_distribution(ctx);
+        fee_settings(ctx);
     }
 }
-

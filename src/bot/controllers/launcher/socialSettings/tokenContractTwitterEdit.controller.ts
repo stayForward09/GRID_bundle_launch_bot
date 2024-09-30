@@ -1,8 +1,8 @@
+import { social_settings } from "."
 import Launches from "@/models/Launch"
-import { launch_variables } from "@/bot/controllers/launcher/launchVariables/index"
 
 export const enterScene = async (ctx: any) => {
-    ctx.reply(`<b>Enter your token symbol </b>\n` + `This is often a shortened version of your name.\n` + `<i>(example: ETH or BTC)</i>`, {
+    ctx.reply(`<b>Enter your X/Twitter URL</b>\n` + `<i>(example: https://twitter.com/ethdotorg)</i>`, {
         parse_mode: 'HTML',
         reply_markup: {
             force_reply: true,
@@ -15,9 +15,9 @@ export const enterScene = async (ctx: any) => {
 export const textHandler = async (ctx: any) => {
     await Launches.findOneAndUpdate(
         { userId: ctx.chat.id, enabled: false },
-        { symbol: ctx.message.text || '' },
+        { twitter: ctx.message.text },
         { new: true, upsert: true }
     );
     await ctx.scene.leave();
-    launch_variables(ctx);
+    social_settings(ctx);
 }

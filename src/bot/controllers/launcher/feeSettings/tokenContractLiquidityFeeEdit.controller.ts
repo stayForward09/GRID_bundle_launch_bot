@@ -1,8 +1,8 @@
-import { token_distribution } from "."
+import { fee_settings } from "."
 import Launches from "@/models/Launch"
 
 export const enterScene = async (ctx: any) => {
-    ctx.reply(`<b>Enter the amount of LP Supply (in %) </b>\n` + `This is the amount of supply that you want to be in the liquidity pool. \n` + `<i>(example: 75 or 100)</i>`, {
+    ctx.reply(`<b>Enter your Liquidity fee</b>\n` + `The fee that is added to the liquidity pool. \n` + `<i>(example: 2 or 3)</i>`, {
         parse_mode: 'HTML',
         reply_markup: {
             force_reply: true,
@@ -13,15 +13,20 @@ export const enterScene = async (ctx: any) => {
 }
 
 export const textHandler = async (ctx: any) => {
-    const { contractFunds } = await Launches.findOneAndUpdate(
+
+    const { buyFee, sellFee } = await Launches.findOneAndUpdate(
         { userId: ctx.chat.id, enabled: false },
         {},
         { new: true, upsert: true }
     );
-    console.log({ contractFunds })
+
     const _value = Number(ctx.message.text);
-    if (isNaN(_value)) {
-        ctx.reply(`<b>Invalid Number</b> LP supply should be number (percent)` + `<i>(example: 75 or 100)</i>`, {
+
+    if (buyFee === 0 && sellFee === 0) {
+        ctx.reply(`You must either have a buy or sell fee before you can set your liquidity fee.`);
+        await ctx.scene.leave();
+    } else if (isNaN(_value)) {
+        ctx.reply(`<b>Invalid Number</b> Liquidity Fee should be number (percent)` + `<i>(example: 2 or 3)</i>`, {
             parse_mode: 'HTML',
             reply_markup: {
                 force_reply: true,
@@ -29,17 +34,8 @@ export const textHandler = async (ctx: any) => {
                 resize_keyboard: true
             }
         })
-    } else if (_value < 0) {
-        ctx.reply(`LP supply must be greater than 0`, {
-            parse_mode: 'HTML',
-            reply_markup: {
-                force_reply: true,
-                one_time_keyboard: true,
-                resize_keyboard: true
-            }
-        })
-    } else if (_value + contractFunds > 100) {
-        ctx.reply(`LP Supply + Contract Funds cannot be greater than 100.`, {
+    } else if (_value > 100 || _value < 0) {
+        ctx.reply(`Liquidity Fee must be greater than 0 and less than 100.`, {
             parse_mode: 'HTML',
             reply_markup: {
                 force_reply: true,
@@ -50,10 +46,10 @@ export const textHandler = async (ctx: any) => {
     } else {
         await Launches.findOneAndUpdate(
             { userId: ctx.chat.id, enabled: false },
-            { lpSupply: _value },
+            { liquidityFee: _value },
             { new: true, upsert: true }
         );
         await ctx.scene.leave();
-        token_distribution(ctx);
+        fee_settings(ctx);
     }
 }

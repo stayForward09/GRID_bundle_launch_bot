@@ -1,16 +1,13 @@
+import Launches from '@/models/Launch'
 import { setup_wizard } from './createLaunch.controller'
+import { launch_variables } from "@/bot/controllers/launcher/launchVariables/index"
 
 /**
  * launch menu
  * @param ctx
  */
 export const menu = async (ctx: any) => {
-    ctx.session.bundled_snipers = false
-    ctx.session.instant_launch = false
-    ctx.session.auto_lp = false
-    ctx.session.token_max_swap = 0
-    ctx.session.token_max_wallet = 0
-    ctx.session.token_blacklist_capability = false
+
     const text =
         `Launcher\n` +
         `Would you like to Create or Manage a token launch?\n` +
@@ -18,7 +15,7 @@ export const menu = async (ctx: any) => {
         `<b>Manage Launch</b> – Set your launch parameters before deployment..\n` +
         `<b>Launch Token</b> – Deploy a new token on the undefined Network.\n`
 
-    
+
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {
@@ -39,7 +36,37 @@ export const menu = async (ctx: any) => {
     })
 }
 
-export const handleSetupWizard = async (ctx: any) => {
-    ctx.session[ctx.session.currentSelectType] = !ctx.session[ctx.session.currentSelectType]
-    setup_wizard(ctx)
+/**
+ * when click setup wizard button
+ * @param ctx 
+ */
+export const handleSetupWizard = async (ctx: any, type: string) => {
+    const launch = await Launches.findOneAndUpdate(
+        { userId: ctx.chat.id, enabled: false },
+        {},
+        { new: true, upsert: true }
+    );
+    if (type === "bundledSnipers") {
+        launch.bundledSnipers = !launch.bundledSnipers;
+        await launch.save();
+        setup_wizard(ctx);
+    } else if (type === "instantLaunch") {
+        if (!launch.instantLaunch) {
+            launch.autoLP = true;
+        }
+        launch.instantLaunch = !launch.instantLaunch;
+        await launch.save();
+        setup_wizard(ctx);
+    } else if (type === "autoLP") {
+        if (launch.autoLP) {
+            launch.instantLaunch = false;
+        }
+        launch.autoLP = !launch.autoLP;
+        await launch.save();
+        setup_wizard(ctx);
+    } else if (type === "blacklistCapability") {
+        launch.blacklistCapability = !launch.blacklistCapability;
+        await launch.save();
+        launch_variables(ctx);
+    }
 }

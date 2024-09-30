@@ -1,8 +1,11 @@
-import { handleSetupWizard, menu as launcher } from './launcher'
+import Launches from '@/models/Launch'
+import { handleSetupWizard, menu as launcher, menu } from './launcher'
 import { create_launch, setup_wizard } from './launcher/createLaunch.controller'
+import { deployer_settings } from './launcher/deployerSettings'
 import { fee_settings } from './launcher/feeSettings'
-import { launch_variables } from './launcher/launchVariables'
+import { social_settings } from './launcher/socialSettings'
 import { token_distribution } from './launcher/tokenDistribution'
+import { previewLaunch, tokenLaunch } from './launcher/launchToken.controller'
 
 /**
  * start
@@ -10,7 +13,7 @@ import { token_distribution } from './launcher/tokenDistribution'
  */
 export const start = async (ctx: any) => {
     const welcome = `Launch and bundle tokens effortlessly with OpenGRID. Streamlined for low-cost, high-performance token management. \n\n <a href='https://opengrid.tech'>Website</a> | <a href='https://opengrid.gitbook.io/opengrid-docs'>Documentation</a> | <a href='https://x.com/OpenGRID_ERC'>Twitter</a> | <a href='https://t.me/OpenGRID'>Telegram</a>`
-    
+
     await ctx.reply(welcome, {
         parse_mode: 'HTML',
         reply_markup: {
@@ -35,22 +38,29 @@ export const start = async (ctx: any) => {
 
 export const callbackQuery = async (ctx: any) => {
     const selectedOption: string = ctx.callbackQuery.data
-    if (selectedOption == 'launcher') {
-        launcher(ctx)
-    } else if (selectedOption == 'create_launch') {
-        create_launch(ctx)
-    } else if (selectedOption == 'setup_wizard') {
+
+    if (selectedOption == 'setup_wizard') {
+        await Launches.deleteMany({ userId: ctx.chat.id, enabled: false });
         setup_wizard(ctx)
-    } else if (selectedOption == 'bundled_snipers' || selectedOption == 'instant_launch' || selectedOption == 'auto_lp' || selectedOption == 'blacklist_capability') {
-        ctx.session.currentSelectType = selectedOption
-        handleSetupWizard(ctx)
-    } else if (selectedOption == 'launch_variables') {
-        launch_variables(ctx)
+    } else if (selectedOption == 'bundledSnipers' || selectedOption == 'instantLaunch' || selectedOption == 'autoLP' || selectedOption == 'blacklistCapability') {
+        handleSetupWizard(ctx, selectedOption)
     } else if (selectedOption.slice(0, 5) == 'token' && selectedOption.slice(-5) == 'Scene') {
         ctx.scene.enter(selectedOption)
-    } else if (selectedOption == 'token_distribution') {
-        token_distribution(ctx)
-    } else if (selectedOption == 'fee_settings') {
-        fee_settings(ctx)
+    } else if (selectedOption === 'create_launch_confirm') {
+        const { deployer } = await Launches.findOne({ userId: ctx.chat.id, enabled: false });
+        if (!deployer?.address) {
+            ctx.reply(`Please connect deployer`)
+        } else {
+            await Launches.findOneAndUpdate(
+                { userId: ctx.chat.id, enabled: false },
+                { enabled: true },
+                { new: true, upsert: true }
+            );
+            menu(ctx);
+        }
+    } else if (selectedOption.startsWith('launch_preview_')) {
+        previewLaunch(ctx, selectedOption.split("_")[2]);
+    } else if (selectedOption.startsWith('launch_token_')) {
+        tokenLaunch(ctx, selectedOption.split("_")[2]);
     }
 }

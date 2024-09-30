@@ -9,14 +9,34 @@ import tokensCommands from './commands/tokens'
 import snipersCommands from './commands/snipers'
 import deployersCommands from './commands/deployers'
 import referralsCommands from './commands/referrals'
-import { tokenNameEditorScene, tokenSymbolEditorScene, tokenSupplyEditorScene, tokenMaxSwapEditorScene, tokenMaxWalletEditorScene, tokenLpEthEditorScene, tokenLpSupplyEditorScene, tokenContractFundsEditorScene } from './scenes'
+import {
+    tokenNameEditorScene,
+    tokenSymbolEditorScene,
+    tokenSupplyEditorScene,
+    tokenMaxSwapEditorScene,
+    tokenMaxWalletEditorScene,
+    tokenLpEthEditorScene,
+    tokenLpSupplyEditorScene,
+    tokenContractFundsEditorScene,
+    tokenBuyFeeEditorScene,
+    tokenSellFeeEditorScene,
+    tokenLiquidityFeeEditorScene,
+    tokenSwapThresholdEditorScene,
+    tokenWebsiteEditorScene,
+    tokenTwitterEditorScene,
+    tokenTelegramEditorScene,
+    tokenCustomEditorScene,
+    tokenDeployerCreatorScene,
+    tokenDeployerLinkScene,
+    tokenFeeWalletEditorScene
+} from './scenes'
 
 export default () => {
     const _bot = new Telegraf(process.env.BOT_TOKEN, {
         handlerTimeout: 9_000_000 // 2.5 hours in milliseconds
     })
     //@ts-expect-error scene
-    const stages = new Scenes.Stage([tokenNameEditorScene, tokenSymbolEditorScene, tokenSupplyEditorScene, tokenMaxSwapEditorScene, tokenMaxWalletEditorScene, tokenLpEthEditorScene, tokenLpSupplyEditorScene, tokenContractFundsEditorScene])
+    const stages = new Scenes.Stage([tokenNameEditorScene, tokenSymbolEditorScene, tokenSupplyEditorScene, tokenMaxSwapEditorScene, tokenMaxWalletEditorScene, tokenLpEthEditorScene, tokenLpSupplyEditorScene, tokenContractFundsEditorScene, tokenBuyFeeEditorScene, tokenSellFeeEditorScene, tokenLiquidityFeeEditorScene, tokenFeeWalletEditorScene, tokenSwapThresholdEditorScene, tokenWebsiteEditorScene, tokenTwitterEditorScene, tokenTelegramEditorScene, tokenCustomEditorScene, tokenDeployerCreatorScene, tokenDeployerLinkScene])
     _bot.use(session({ defaultSession: () => ({ currentSelectType: '' }) }));
     // use tg scene's middlewares
     _bot.use(stages.middleware())
@@ -31,12 +51,12 @@ export default () => {
     ]
     _bot.telegram.setMyCommands(commands)
     // setup commands
-    mainCommands(_bot)
     launcherCommands(_bot)
     tokensCommands(_bot)
     snipersCommands(_bot)
     deployersCommands(_bot)
     referralsCommands(_bot)
+    mainCommands(_bot)
     // launch TG bot instance
     _bot.launch()
 

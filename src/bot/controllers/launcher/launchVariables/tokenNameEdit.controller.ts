@@ -1,4 +1,5 @@
-import Tokens from "@/models/Tokens"
+import Launches from "@/models/Launch"
+import { launch_variables } from "@/bot/controllers/launcher/launchVariables/index"
 
 export const enterScene = async (ctx: any) => {
     ctx.reply(`<b>Enter your token name </b>\n` + `The name your token it will be known by.\n` + `<i>(example: Bitcoin or Ethereum)</i>`, {
@@ -12,7 +13,11 @@ export const enterScene = async (ctx: any) => {
 }
 
 export const textHandler = async (ctx: any) => {
-    console.log('message::', ctx.message.text)
-    const tokenName = ctx.message.text || ''
-    Tokens.create({name: tokenName})
+    await Launches.findOneAndUpdate(
+        { userId: ctx.chat.id, enabled: false },
+        { name: ctx.message.text || '' },
+        { new: true, upsert: true }
+    );
+    await ctx.scene.leave();
+    launch_variables(ctx);
 }

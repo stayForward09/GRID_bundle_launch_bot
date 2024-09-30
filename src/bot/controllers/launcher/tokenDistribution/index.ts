@@ -1,4 +1,13 @@
+import Launches from "@/models/Launch";
+
 export const token_distribution = async (ctx: any) => {
+
+    const { lpSupply, lpEth, contractFunds, totalSupply } = await Launches.findOneAndUpdate(
+        { userId: ctx.chat.id, enabled: false },
+        {},
+        { new: true, upsert: true }
+    );
+
     const text =
         `<b>Launch Creation in Progress…</b>\n` +
         `Set your Initial Liquidity below.\n` +
@@ -8,7 +17,7 @@ export const token_distribution = async (ctx: any) => {
         `<b>Contract Funds </b> – Tokens that will be minted directly into the contract's wallet. These will be used for tax.\n` +
         `<b>Anti-Drain </b> – A system that attempts to prevent the contract funds from being drained by malicious bots.\n`
 
-    
+
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {
@@ -19,10 +28,10 @@ export const token_distribution = async (ctx: any) => {
                 ],
                 [{ text: '===== TOKEN DISTRIBUTION =====', callback_data: '#' }],
                 [
-                    { text: '📦 LP Supply', callback_data: 'tokenLpSupplyEditorScene' },
-                    { text: '🥢 LP ETH', callback_data: 'tokenLpEthEditorScene' }
+                    { text: `📦 LP Supply ${Intl.NumberFormat().format(totalSupply * lpSupply * 0.01)}`, callback_data: 'tokenLpSupplyEditorScene' },
+                    { text: `🥢 LP ETH ${Intl.NumberFormat().format(lpEth)}`, callback_data: 'tokenLpEthEditorScene' }
                 ],
-                [{ text: '💳 Contract Funds', callback_data: 'tokenContractFundsEditorScene' }]
+                [{ text: `💳 Contract Funds ${Intl.NumberFormat().format(totalSupply * contractFunds * 0.01)}`, callback_data: 'tokenContractFundsEditorScene' }]
             ],
             // eslint-disable-next-line prettier/prettier
             resize_keyboard: true

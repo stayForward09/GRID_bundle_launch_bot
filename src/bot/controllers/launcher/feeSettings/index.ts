@@ -1,4 +1,13 @@
+import Launches from "@/models/Launch";
+
 export const fee_settings = async (ctx: any) => {
+
+    const { buyFee, sellFee, liquidityFee, swapThreshold, feeWallet } = await Launches.findOneAndUpdate(
+        { userId: ctx.chat.id, enabled: false },
+        {},
+        { new: true, upsert: true }
+    );
+
     const text =
         `<b>Launch Creation in Progress…</b>\n` +
         `If you wish to have a tax on your token, fill in the fields below. \n\n` +
@@ -15,17 +24,18 @@ export const fee_settings = async (ctx: any) => {
             inline_keyboard: [
                 [
                     { text: '⬅ Back', callback_data: 'token_distribution' },
-                    { text: '➡ Next ', callback_data: '#' }
+                    { text: '➡ Next ', callback_data: 'social_settings' }
                 ],
                 [{ text: '===== FEE SETTINGS =====', callback_data: '#' }],
-                
-                [{ text: 'Fee Wallet: Deployer Wallet', callback_data: 'tokenFeeWalletEditorScene' }],
+
+                [{ text: `Fee Wallet: ${feeWallet}`, callback_data: 'tokenFeeWalletEditorScene' }],
                 [
-                    { text: `Buy Fee`, callback_data: 'tokenBuyFeeEditorScene' },
-                    { text: `Sell Fee`, callback_data: 'tokenSellFeeEditorScene' }
+                    { text: `${buyFee ? '🟢' : '🔴'} Buy Fee ${buyFee}%`, callback_data: 'tokenBuyFeeEditorScene' },
+                    { text: `${sellFee ? '🟢' : '🔴'} Sell Fee ${sellFee}%`, callback_data: 'tokenSellFeeEditorScene' }
                 ],
-                [{ text: `Liquidity Fee`, callback_data: 'tokenLiquidityFeeEditorScene' }]
-            ], 
+                [{ text: `${liquidityFee ? '🟢' : '🔴'} Liquidity Fee ${liquidityFee}$`, callback_data: 'tokenLiquidityFeeEditorScene' }],
+                buyFee > 0 || sellFee > 0 ? [{ text: `⚖ Swap Threshold ${swapThreshold}%`, callback_data: 'tokenSwapThresholdEditorScene' }] : [],
+            ],
             // eslint-disable-next-line prettier/prettier
             resize_keyboard: true
         },

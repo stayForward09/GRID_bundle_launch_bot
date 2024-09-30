@@ -1,3 +1,5 @@
+import Launches from "@/models/Launch"
+
 export const create_launch = async (ctx: any) => {
     const text =
         `<b>Launch Type Selection</b>\n` +
@@ -5,7 +7,7 @@ export const create_launch = async (ctx: any) => {
         `<b>Setup Wizard</b> –  Create a new token launch with our easy-to-use interface.\n` +
         `<b>Custom Contract (Beta) </b> – Upload your own token contract to be used for your launch.\n`
 
-    
+
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {
@@ -26,9 +28,7 @@ export const create_launch = async (ctx: any) => {
 }
 
 export const setup_wizard = async (ctx: any) => {
-    const bundled_snipers = ctx.session.bundled_snipers === true
-    const instant_launch = ctx.session.instant_launch === true
-    const auto_lp = ctx.session.auto_lp === true
+    const launch = await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, {}, { new: true, upsert: true });
     const text =
         `<b>Launch Creation in Progress…</b>\n` +
         `Choose any optional features you would like enabled with this launch.\n\n` +
@@ -36,7 +36,7 @@ export const setup_wizard = async (ctx: any) => {
         `<b>Instant Launch </b> – From Deployment to Liquidity to Trading, enable it all in one to perform a true Stealth Launch.\n` +
         `<b>Automatic LP </b> – During Deployment, immediately Initialize the Liquidity Pool without Enabling Trading.\n`
 
-    
+
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {
@@ -47,10 +47,10 @@ export const setup_wizard = async (ctx: any) => {
                 ],
                 [{ text: '===== LAUNCH SETTINGS =====', callback_data: '#' }],
                 [
-                    { text: `${bundled_snipers ? '🟢' : '🔴'} Bundled Snipers`, callback_data: 'bundled_snipers' },
-                    { text: `${instant_launch ? '🟢' : '🔴'} Instant Launch`, callback_data: 'instant_launch' }
+                    { text: `${launch.bundledSnipers ? '🟢' : '🔴'} Bundled Snipers`, callback_data: 'bundledSnipers' },
+                    { text: `${launch.instantLaunch ? '🟢' : '🔴'} Instant Launch`, callback_data: 'instantLaunch' }
                 ],
-                [{ text: `${auto_lp ? '🟢' : '🔴'} Auto LP`, callback_data: 'auto_lp' }]
+                [{ text: `${launch.autoLP ? '🟢' : '🔴'} Auto LP`, callback_data: 'autoLP' }]
             ],
             // eslint-disable-next-line prettier/prettier
             resize_keyboard: true
