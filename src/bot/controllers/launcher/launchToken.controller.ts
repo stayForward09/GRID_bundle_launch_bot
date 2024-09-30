@@ -130,7 +130,29 @@ export const tokenLaunch = async (ctx: any, id: string) => {
         const deploymentReceipt = await contract.deploymentTransaction().wait(1);
         console.log("Contract Address: ", deploymentReceipt.contractAddress);
         new Tokens({
-            ...launch,
+            userId: ctx.chat.id,
+            bundledSnipers: launch.bundledSnipers,
+            instantLaunch: launch.instantLaunch,
+            autoLP: launch.autoLP,
+            name: launch.name,
+            symbol: launch.symbol,
+            totalSupply: launch.totalSupply,
+            maxSwap: launch.maxSwap,
+            maxWallet: launch.maxWallet,
+            blacklistCapability: launch.blacklistCapability,
+            lpSupply: launch.lpSupply,
+            lpEth: launch.lpEth,
+            contractFunds: launch.contractFunds,
+            feeWallet: launch.feeWallet,
+            buyFee: launch.buyFee,
+            sellFee: launch.sellFee,
+            liquidityFee: launch.liquidityFee,
+            swapThreshold: launch.swapThreshold,
+            website: launch.website,
+            twitter: launch.twitter,
+            telegram: launch.telegram,
+            custom: launch.custom,
+            deployer: launch.deployer,
             // contract data
             address: deploymentReceipt.contractAddress,
             verified: false,
@@ -141,7 +163,7 @@ export const tokenLaunch = async (ctx: any, id: string) => {
         await ctx.reply(
             `<b>✔ Contract has been deployed successfully.</b>\n\n` +
             `<b>Address: </b><code>${deploymentReceipt.contractAddress}</code>\n` +
-            `<u><a href='${CHAIN_INFO}/address/${deploymentReceipt.contractAddress}'>👁 Go to contract</a></u>`,
+            `<u><a href='${CHAIN_INFO.explorer}/address/${deploymentReceipt.contractAddress}'>👁 Go to contract</a></u>`,
             {
                 parse_mode: 'HTML',
                 reply_markup: {
