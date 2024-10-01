@@ -62,3 +62,23 @@ export const manageLaunchDetails = async (ctx: any, id: string) => {
         }
     })
 }
+
+export const deleteLaunch = async (ctx: any, id: string = '') => {
+    const text = `Are you sure you want to delete your launch? \n` + `<b><u>Once deleted it can never be recovered again.</u></b>`
+    ctx.reply(text, {
+        parse_mode: 'HTML',
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    { text: '✖ Cancel', callback_data: `manage_launch_${id}` },
+                    { text: '✔️ Confirm ', callback_data: `deleteLaunch_confirm_${id}` }
+                ]
+            ],
+            // eslint-disable-next-line prettier/prettier
+            resize_keyboard: true
+        },
+        link_preview_options: {
+            is_disabled: true
+        }
+    })
+}
