@@ -80,6 +80,7 @@ export const verifyContract = async (
                 }
             }
         );
+        console.log(data)
         if (data.status === '0') {
             return {
                 status: "error",
@@ -114,7 +115,7 @@ export const compileContract = ({
     instantLaunch,
     feeWallet,
 }) => new Promise(async (resolve, reject) => {
-    const contractPath = path.resolve(__dirname, "../../../constants/contracts/token.sol"); // Path to your Solidity file
+    const contractPath = path.resolve(__dirname, "../constants/contracts/token.sol"); // Path to your Solidity file
     const source = fs.readFileSync(contractPath, 'utf8'); // Read the contract file
     // todo make source code
     const sourceCode = source;

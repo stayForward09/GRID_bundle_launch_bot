@@ -118,7 +118,7 @@ export const contractVerification = async (ctx: any, id: string) => {
         const { status, message } = await verifyContract(
             _token.address,
             _token.sourceCode,
-            `contracts/${symbol}.sol:${symbol}`
+            symbol
         );
 
         if (status === 'success') {
