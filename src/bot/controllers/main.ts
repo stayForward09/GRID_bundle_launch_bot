@@ -6,6 +6,7 @@ import { fee_settings } from './launcher/feeSettings'
 import { social_settings } from './launcher/socialSettings'
 import { token_distribution } from './launcher/tokenDistribution'
 import { previewLaunch, tokenLaunch } from './launcher/launchToken.controller'
+import { contractVerification, generalSettings, detail as tokenDetail } from './tokens'
 
 /**
  * start
@@ -62,5 +63,11 @@ export const callbackQuery = async (ctx: any) => {
         previewLaunch(ctx, selectedOption.split("_")[2]);
     } else if (selectedOption.startsWith('launch_token_')) {
         tokenLaunch(ctx, selectedOption.split("_")[2]);
+    } else if (selectedOption.startsWith('manage_token_')) {
+        tokenDetail(ctx, selectedOption.split("_")[2]);
+    } else if (selectedOption.startsWith('general_settings_')) {
+        generalSettings(ctx, selectedOption.split("_")[2]);
+    } else if (selectedOption.startsWith('verify_contract_')) {
+        contractVerification(ctx, selectedOption.split("_")[2]);
     }
 }

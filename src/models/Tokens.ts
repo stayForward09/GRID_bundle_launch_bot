@@ -30,6 +30,12 @@ export interface IToken extends Document {
         address: string,
         key: string
     },
+
+    address: string,
+    verified: boolean,
+    abi: string,
+    byteCode: string,
+    sourceCode: string
 }
 interface ITokenModel extends Model<IToken> { }
 

@@ -75,8 +75,7 @@ export const previewLaunch = async (ctx: any, id: string) => {
     }
 }
 
-// Step 1: Compile the contract using solc
-const compileContract = ({
+const compileContract = async ({
     name,
     symbol,
     totalSupply,
@@ -120,6 +119,7 @@ const compileContract = ({
             }
         }
     };
+
     // Compile the contract
     const compiledContract = JSON.parse(solc.compile(JSON.stringify(input)));
     const contractFile = compiledContract.contracts[`${_symbol}.sol`][_symbol];
@@ -144,7 +144,7 @@ export const tokenLaunch = async (ctx: any, id: string) => {
         return;
     }
     try {
-        const { abi, bytecode, sourceCode } = compileContract({
+        const { abi, bytecode, sourceCode } = await compileContract({
             name: launch.name,
             symbol: launch.symbol,
             totalSupply: launch.totalSupply,
