@@ -7,7 +7,7 @@ import { social_settings } from './launcher/socialSettings'
 import { token_distribution } from './launcher/tokenDistribution'
 import { previewLaunch, tokenLaunch } from './launcher/launchToken.controller'
 import { contractVerification, generalSettings, detail as tokenDetail } from './tokens'
-import { manageLaunchDetails } from './launcher/manageLaunch.controller'
+import { deleteLaunch, manageLaunchDetails } from './launcher/manageLaunch.controller'
 import { launch_variables } from './launcher/launchVariables'
 
 /**
@@ -87,5 +87,11 @@ export const callbackQuery = async (ctx: any) => {
         social_settings(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('deployer_settings_')) {
         deployer_settings(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('delete_launch_')) {
+        deleteLaunch(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('deleteLaunch_confirm_')) {
+        const id = selectedOption.split("_")[2]
+        await Launches.deleteOne({ _id: id })
+        launcher(ctx)
     }
 }
