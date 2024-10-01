@@ -1,7 +1,7 @@
+import { Markup } from 'telegraf'
 import { CHAIN_INFO } from "@/config/constant";
+import { verifyContract } from "@/share/utils";
 import Tokens from "@/models/Tokens";
-import axios from 'axios';
-import solc from 'solc';
 
 export const menu = async (ctx: any) => {
     const _tokens = await Tokens.find({ userId: ctx.chat.id });
@@ -31,6 +31,12 @@ export const menu = async (ctx: any) => {
     })
 }
 
+/**
+ * controller token detail page
+ * @param ctx 
+ * @param id 
+ * @returns 
+ */
 export const detail = async (ctx: any, id: string) => {
     const _token = await Tokens.findById(id);
     if (!_token) {
@@ -64,6 +70,12 @@ export const detail = async (ctx: any, id: string) => {
     })
 }
 
+/**
+ * controller for general settings
+ * @param ctx 
+ * @param id 
+ * @returns 
+ */
 export const generalSettings = async (ctx: any, id: string) => {
     const _token = await Tokens.findById(id);
     if (!_token) {
@@ -87,6 +99,11 @@ export const generalSettings = async (ctx: any, id: string) => {
     })
 }
 
+/**
+ * controller for contract verification
+ * @param ctx 
+ * @param id 
+ */
 export const contractVerification = async (ctx: any, id: string) => {
     const _token = await Tokens.findById(id);
     if (!_token) {
@@ -95,49 +112,31 @@ export const contractVerification = async (ctx: any, id: string) => {
         ctx.reply(`Contract already verified on <a href='${CHAIN_INFO.explorer}/address/${_token.address}'>EtherscanOrg</a>`)
     } else {
         ctx.reply('🕐 Verifying Contract...');
+        const symbol = _token.symbol.replace(/\s/g, '');
+        const name = _token.name;
 
-        try {
-            const symbol = _token.symbol.replace(/\s/g, '');
-            const name = _token.name;
+        const { status, message } = await verifyContract(
+            _token.address,
+            _token.sourceCode,
+            `contracts/${symbol}.sol:${symbol}`
+        );
 
-            console.log(`contracts/${symbol}.sol:${symbol}`)
-
-            const data = await axios.post(`https://api.basescan.org/api?module=contract&action=verifysourcecode&apikey=${process.env.ETHERSCAN_API_KEY}`,
+        if (status === 'success') {
+            ctx.reply(
+                `🌺 <code>${_token.symbol}</code> has been verified successfully on Etherscan\nAddress: <code>${_token.address}</code>`,
                 {
-                    // apikey: process.env.ETHERSCAN_API_KEY,
-                    // module: 'contract',
-                    // action: 'verifysourcecode',
-
-                    codeformat: "solidity-single-file",
-                    sourceCode: _token.sourceCode,
-                    contractaddress: _token.address,
-                    contractname: symbol,
-                    compilerversion: 'v0.8.19+commit.7dd6d404',
-                    optimizationUsed: 1,
-                    runs: 200,
-                },
-                {
-                    headers: {
-                        'Content-Type': "application/x-www-form-urlencoded"
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [Markup.button.url(`👁 View Here`, `${CHAIN_INFO.explorer}/address/${_token.address}`)],
+                            [{ text: '👈 Back', callback_data: `manage_token_${id}` }],
+                        ],
+                        resize_keyboard: true
                     }
                 }
-            );
-
-            console.log(data.data)
-        } catch (err) {
-            console.log(err)
+            )
+        } else {
+            ctx.reply(`💬 ${message}`)
         }
-
-        // ctx.reply(text, {
-        //     parse_mode: 'HTML',
-        //     reply_markup: {
-        //         inline_keyboard: [
-        //             [{ text: '🏁 Enable Trading', callback_data: `enable_trading_${id}` }, { text: '🌺 Verify Contract', callback_data: `verify_contract_${id}` }],
-        //             [{ text: '👈 Back', callback_data: `manage_token_${id}` }],
-        //         ],
-        //         resize_keyboard: true
-        //     }
-        // })
     }
-
 }
