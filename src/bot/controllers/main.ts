@@ -1,12 +1,14 @@
 import Launches from '@/models/Launch'
 import { handleSetupWizard, menu as launcher, menu } from './launcher'
-import { create_launch, setup_wizard } from './launcher/createLaunch.controller'
+import { create_launch, launch_settings } from './launcher/createLaunch.controller'
 import { deployer_settings } from './launcher/deployerSettings'
 import { fee_settings } from './launcher/feeSettings'
 import { social_settings } from './launcher/socialSettings'
 import { token_distribution } from './launcher/tokenDistribution'
 import { previewLaunch, tokenLaunch } from './launcher/launchToken.controller'
 import { contractVerification, generalSettings, detail as tokenDetail } from './tokens'
+import { manageLaunchDetails } from './launcher/manageLaunch.controller'
+import { launch_variables } from './launcher/launchVariables'
 
 /**
  * start
@@ -41,33 +43,49 @@ export const callbackQuery = async (ctx: any) => {
     const selectedOption: string = ctx.callbackQuery.data
 
     if (selectedOption == 'setup_wizard') {
-        await Launches.deleteMany({ userId: ctx.chat.id, enabled: false });
-        setup_wizard(ctx)
-    } else if (selectedOption == 'bundledSnipers' || selectedOption == 'instantLaunch' || selectedOption == 'autoLP' || selectedOption == 'blacklistCapability') {
-        handleSetupWizard(ctx, selectedOption)
-    } else if (selectedOption.slice(0, 5) == 'token' && selectedOption.slice(-5) == 'Scene') {
-        ctx.scene.enter(selectedOption)
-    } else if (selectedOption === 'create_launch_confirm') {
-        const { deployer } = await Launches.findOne({ userId: ctx.chat.id, enabled: false });
+        await Launches.deleteMany({ userId: ctx.chat.id, enabled: false })
+        launch_settings(ctx)
+    } else if (selectedOption.startsWith('bundledSnipers_') || selectedOption.startsWith('instantLaunch_') || selectedOption.startsWith('autoLP_') || selectedOption.startsWith('blacklistCapability_')) {
+        handleSetupWizard(ctx, selectedOption.split('_')[0], selectedOption.split('_')[1])
+    } else if (selectedOption.startsWith('scene_')) {
+        const [_, sceneName, id] = selectedOption.split('_')
+        ctx.scene.enter(sceneName, { id: id })
+    } else if (selectedOption.startsWith('create_launch_confirm_')) {
+        const id = selectedOption.split('_')[3]
+        const { deployer } = id.length > 1 ? await Launches.findById(id) : await Launches.findOne({ userId: ctx.chat.id, enabled: false })
         if (!deployer?.address) {
             ctx.reply(`Please connect deployer`)
         } else {
-            await Launches.findOneAndUpdate(
-                { userId: ctx.chat.id, enabled: false },
-                { enabled: true },
-                { new: true, upsert: true }
-            );
-            menu(ctx);
+            if (id.length > 1) {
+                manageLaunchDetails(ctx, id)
+            } else {
+                await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, { enabled: true }, { new: true, upsert: true })
+                menu(ctx)
+            }
         }
     } else if (selectedOption.startsWith('launch_preview_')) {
-        previewLaunch(ctx, selectedOption.split("_")[2]);
+        previewLaunch(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('launch_token_')) {
-        tokenLaunch(ctx, selectedOption.split("_")[2]);
+        tokenLaunch(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('manage_token_')) {
-        tokenDetail(ctx, selectedOption.split("_")[2]);
+        tokenDetail(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('general_settings_')) {
-        generalSettings(ctx, selectedOption.split("_")[2]);
+        generalSettings(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('verify_contract_')) {
-        contractVerification(ctx, selectedOption.split("_")[2]);
+        contractVerification(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('manage_launch_')) {
+        manageLaunchDetails(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('edit_launch_')) {
+        launch_settings(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('launch_variables_')) {
+        launch_variables(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('token_distribution_')) {
+        token_distribution(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('fee_settings_')) {
+        fee_settings(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('social_settings_')) {
+        social_settings(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('deployer_settings_')) {
+        deployer_settings(ctx, selectedOption.split('_')[2])
     }
 }

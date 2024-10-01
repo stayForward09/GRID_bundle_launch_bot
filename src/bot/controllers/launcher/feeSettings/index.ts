@@ -1,12 +1,7 @@
-import Launches from "@/models/Launch";
+import Launches from '@/models/Launch'
 
-export const fee_settings = async (ctx: any) => {
-
-    const { buyFee, sellFee, liquidityFee, swapThreshold, feeWallet } = await Launches.findOneAndUpdate(
-        { userId: ctx.chat.id, enabled: false },
-        {},
-        { new: true, upsert: true }
-    );
+export const fee_settings = async (ctx: any, id: string = '') => {
+    const { buyFee, sellFee, liquidityFee, swapThreshold, feeWallet } = id.length > 1 ? await Launches.findById(id) : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, {}, { new: true, upsert: true })
 
     const text =
         `<b>Launch Creation in Progress…</b>\n` +
@@ -23,18 +18,24 @@ export const fee_settings = async (ctx: any) => {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: '⬅ Back', callback_data: 'token_distribution' },
-                    { text: '➡ Next ', callback_data: 'social_settings' }
+                    { text: '⬅ Back', callback_data: `token_distribution_${id}` },
+                    { text: '➡ Next ', callback_data: `social_settings_${id}` }
                 ],
                 [{ text: '===== FEE SETTINGS =====', callback_data: '#' }],
 
-                [{ text: `Fee Wallet: ${feeWallet}`, callback_data: 'tokenFeeWalletEditorScene' }],
+                [{ text: `Fee Wallet: ${feeWallet}`, callback_data: `scene_tokenFeeWalletEditorScene_${id}` }],
                 [
-                    { text: `${buyFee ? '🟢' : '🔴'} Buy Fee ${buyFee}%`, callback_data: 'tokenBuyFeeEditorScene' },
-                    { text: `${sellFee ? '🟢' : '🔴'} Sell Fee ${sellFee}%`, callback_data: 'tokenSellFeeEditorScene' }
+                    { text: `${buyFee ? '🟢' : '🔴'} Buy Fee ${buyFee}%`, callback_data: `scene_tokenBuyFeeEditorScene_${id}` },
+                    { text: `${sellFee ? '🟢' : '🔴'} Sell Fee ${sellFee}%`, callback_data: `scene_tokenSellFeeEditorScene_${id}` }
                 ],
-                [{ text: `${liquidityFee ? '🟢' : '🔴'} Liquidity Fee ${liquidityFee}$`, callback_data: 'tokenLiquidityFeeEditorScene' }],
-                buyFee > 0 || sellFee > 0 ? [{ text: `⚖ Swap Threshold ${swapThreshold}%`, callback_data: 'tokenSwapThresholdEditorScene' }] : [],
+                [{ text: `${liquidityFee ? '🟢' : '🔴'} Liquidity Fee ${liquidityFee}$`, callback_data: `scene_tokenLiquidityFeeEditorScene_${id}` }],
+                buyFee > 0 || sellFee > 0 ? [{ text: `⚖ Swap Threshold ${swapThreshold}%`, callback_data: `scene_tokenSwapThresholdEditorScene_${id}` }] : [],
+                id.length > 1
+                    ? [
+                          { text: '✖ Cancel', callback_data: `manage_launch_${id}` },
+                          { text: '✔️ Save ', callback_data: `manage_launch_${id}` }
+                      ]
+                    : []
             ],
             // eslint-disable-next-line prettier/prettier
             resize_keyboard: true

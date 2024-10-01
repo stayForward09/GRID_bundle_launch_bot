@@ -4,13 +4,13 @@ import Launches from "@/models/Launch";
  * Launch Varaible Settings
  * @param ctx 
  */
-export const social_settings = async (ctx: any) => {
+export const social_settings = async (ctx: any, id: string = '') => {
     const {
         website,
         twitter,
         telegram,
         custom
-    } = await Launches.findOneAndUpdate(
+    } = id.length > 1 ? await Launches.findById(id) : await Launches.findOneAndUpdate(
         { userId: ctx.chat.id, enabled: false },
         {},
         { new: true, upsert: true }
@@ -31,18 +31,24 @@ export const social_settings = async (ctx: any) => {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: '⬅ Back', callback_data: 'fee_settings' },
-                    { text: '➡ Next ', callback_data: 'deployer_settings' }
+                    { text: '⬅ Back', callback_data: `fee_settings_${id}` },
+                    { text: '➡ Next ', callback_data: `deployer_settings_${id}` }
                 ],
                 [{ text: '===== SOCIAL SETTINGS =====', callback_data: '#' }],
                 [
-                    { text: `🌐 Website: ${website}`, callback_data: 'tokenWebsiteEditorScene' },
-                    { text: `✖ X/Twitter: ${twitter}`, callback_data: 'tokenTwitterEditorScene' }
+                    { text: `🌐 Website: ${website}`, callback_data: `scene_tokenWebsiteEditorScene_${id}` },
+                    { text: `✖ X/Twitter: ${twitter}`, callback_data: `scene_tokenTwitterEditorScene_${id}` }
                 ],
                 [
-                    { text: `🗨 Telegram: ${telegram}`, callback_data: 'tokenTelegramEditorScene' },
-                    { text: `✏ Custom: ${custom}`, callback_data: 'tokenCustomEditorScene' }
+                    { text: `🗨 Telegram: ${telegram}`, callback_data: `scene_tokenTelegramEditorScene_${id}` },
+                    { text: `✏ Custom: ${custom}`, callback_data: `scene_tokenCustomEditorScene_${id}` }
                 ],
+                id.length > 1
+                    ? [
+                          { text: '✖ Cancel', callback_data: `manage_launch_${id}` },
+                          { text: '✔️ Save ', callback_data: `manage_launch_${id}` }
+                      ]
+                    : []
             ],
             // eslint-disable-next-line prettier/prettier
             resize_keyboard: true

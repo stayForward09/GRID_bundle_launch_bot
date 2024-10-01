@@ -1,8 +1,8 @@
 import Launches from "@/models/Launch";
 
-export const token_distribution = async (ctx: any) => {
+export const token_distribution = async (ctx: any, id: string = '') => {
 
-    const { lpSupply, lpEth, contractFunds, totalSupply } = await Launches.findOneAndUpdate(
+    const { lpSupply, lpEth, contractFunds, totalSupply } = id.length > 1 ? await Launches.findById(id) : await Launches.findOneAndUpdate(
         { userId: ctx.chat.id, enabled: false },
         {},
         { new: true, upsert: true }
@@ -17,21 +17,25 @@ export const token_distribution = async (ctx: any) => {
         `<b>Contract Funds </b> – Tokens that will be minted directly into the contract's wallet. These will be used for tax.\n` +
         `<b>Anti-Drain </b> – A system that attempts to prevent the contract funds from being drained by malicious bots.\n`
 
-
+    
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: '⬅ Back', callback_data: 'launch_variables' },
-                    { text: '➡ Next ', callback_data: 'fee_settings' }
+                    { text: '⬅ Back', callback_data: `launch_variables_${id}` },
+                    { text: '➡ Next ', callback_data: `fee_settings_${id}` }
                 ],
                 [{ text: '===== TOKEN DISTRIBUTION =====', callback_data: '#' }],
                 [
-                    { text: `📦 LP Supply ${Intl.NumberFormat().format(totalSupply * lpSupply * 0.01)}`, callback_data: 'tokenLpSupplyEditorScene' },
-                    { text: `🥢 LP ETH ${Intl.NumberFormat().format(lpEth)}`, callback_data: 'tokenLpEthEditorScene' }
+                    { text: `📦 LP Supply ${Intl.NumberFormat().format(totalSupply * lpSupply * 0.01)}`, callback_data: `scene_tokenLpSupplyEditorScene_${id}` },
+                    { text: `🥢 LP ETH ${Intl.NumberFormat().format(lpEth)}`, callback_data: `scene_tokenLpEthEditorScene_${id}` }
                 ],
-                [{ text: `💳 Contract Funds ${Intl.NumberFormat().format(totalSupply * contractFunds * 0.01)}`, callback_data: 'tokenContractFundsEditorScene' }]
+                [{ text: `💳 Contract Funds ${Intl.NumberFormat().format(totalSupply * contractFunds * 0.01)}`, callback_data: `scene_tokenContractFundsEditorScene_${id}` }],
+                id.length > 1 ? [
+                    { text: '✖ Cancel', callback_data: `manage_launch_${id}` },
+                    { text: '✔️ Save ', callback_data: `manage_launch_${id}` }
+                ] : []
             ],
             // eslint-disable-next-line prettier/prettier
             resize_keyboard: true

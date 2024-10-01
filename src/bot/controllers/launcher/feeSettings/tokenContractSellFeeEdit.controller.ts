@@ -14,6 +14,7 @@ export const enterScene = async (ctx: any) => {
 
 export const textHandler = async (ctx: any) => {
     const _value = Number(ctx.message.text);
+    const { id } = ctx.scene.state
     if (isNaN(_value)) {
         ctx.reply(`<b>Invalid Number</b> Sell Fee should be number (percent)` + `<i>(example: 2 or 3)</i>`, {
             parse_mode: 'HTML',
@@ -33,12 +34,16 @@ export const textHandler = async (ctx: any) => {
             }
         })
     } else {
-        await Launches.findOneAndUpdate(
+        id.length > 1 ? await Launches.findOneAndUpdate(
+            { _id: id },
+            { sellFee: _value },
+            { new: true }
+        ) : await Launches.findOneAndUpdate(
             { userId: ctx.chat.id, enabled: false },
             { sellFee: _value },
             { new: true, upsert: true }
         );
         await ctx.scene.leave();
-        fee_settings(ctx);
+        fee_settings(ctx, id);
     }
 }

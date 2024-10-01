@@ -14,6 +14,7 @@ export const enterScene = async (ctx: any) => {
 
 export const textHandler = async (ctx: any) => {
     const _value = Number(ctx.message.text);
+    const { id } = ctx.scene.state
     if (_value <= 0 || _value >= 100 || isNaN(_value)) {
         ctx.reply(`<b>Invalid Max Swap</b> It should be between 0 and 100 (percent)` + `<i>(example: 1 or 5)</i>`, {
             parse_mode: 'HTML',
@@ -24,12 +25,16 @@ export const textHandler = async (ctx: any) => {
             }
         })
     } else {
-        await Launches.findOneAndUpdate(
+        id.length > 1 ? await Launches.findOneAndUpdate(
+            { _id: id },
+            { maxSwap: _value },
+            { new: true }
+        ) : await Launches.findOneAndUpdate(
             { userId: ctx.chat.id, enabled: false },
             { maxSwap: _value },
             { new: true, upsert: true }
         );
         await ctx.scene.leave();
-        launch_variables(ctx);
+        launch_variables(ctx, id);
     }
 }

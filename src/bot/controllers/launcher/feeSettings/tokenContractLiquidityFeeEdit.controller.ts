@@ -13,8 +13,8 @@ export const enterScene = async (ctx: any) => {
 }
 
 export const textHandler = async (ctx: any) => {
-
-    const { buyFee, sellFee } = await Launches.findOneAndUpdate(
+    const { id } = ctx.scene.state
+    const { buyFee, sellFee } = id.length > 1 ? await Launches.findById(id) : await Launches.findOneAndUpdate(
         { userId: ctx.chat.id, enabled: false },
         {},
         { new: true, upsert: true }
@@ -44,12 +44,16 @@ export const textHandler = async (ctx: any) => {
             }
         })
     } else {
-        await Launches.findOneAndUpdate(
+        id.length > 1 ? await Launches.findOneAndUpdate(
+            { _id: id },
+            { liquidityFee: _value },
+            { new: true }
+        ) : await Launches.findOneAndUpdate(
             { userId: ctx.chat.id, enabled: false },
             { liquidityFee: _value },
             { new: true, upsert: true }
         );
         await ctx.scene.leave();
-        fee_settings(ctx);
+        fee_settings(ctx, id);
     }
 }

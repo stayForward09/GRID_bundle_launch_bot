@@ -15,14 +15,19 @@ export const enterScene = async (ctx: any) => {
 
 export const textHandler = async (ctx: any) => {
     const _value = ctx.message.text;
+    const { id } = ctx.scene.state
     if (isAddress(_value)) {
-        await Launches.findOneAndUpdate(
+        id.length > 1 ? await Launches.findOneAndUpdate(
+            { _id: id },
+            { feeWallet: _value },
+            { new: true }
+        ) : await Launches.findOneAndUpdate(
             { userId: ctx.chat.id, enabled: false },
             { feeWallet: _value },
             { new: true, upsert: true }
         );
         await ctx.scene.leave();
-        fee_settings(ctx);
+        fee_settings(ctx, id);
     } else {
         await ctx.reply(`Invalid EVM address. Please retry`);
     }

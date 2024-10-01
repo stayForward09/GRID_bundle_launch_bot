@@ -13,11 +13,16 @@ export const enterScene = async (ctx: any) => {
 }
 
 export const textHandler = async (ctx: any) => {
-    await Launches.findOneAndUpdate(
+    const { id } = ctx.scene.state
+    id.length > 1 ? await Launches.findOneAndUpdate(
+        { _id: id },
+        { custom: ctx.message.text },
+        { new: true }
+    ) : await Launches.findOneAndUpdate(
         { userId: ctx.chat.id, enabled: false },
         { custom: ctx.message.text },
         { new: true, upsert: true }
     );
     await ctx.scene.leave();
-    social_settings(ctx);
+    social_settings(ctx, id);
 }
