@@ -36,17 +36,22 @@ export const enterScene = async (ctx: any) => {
  * @param ctx 
  */
 export const callbackQuery = async (ctx: any) => {
+    const { id } =  ctx.scene.state
     const selectedOption: string = ctx.callbackQuery.data
     if (selectedOption === 'deployer_create_confirm') {
         const { address, key } = ctx.session?.wallet;
-        await Launches.findOneAndUpdate(
+        id.length > 1 ? await Launches.findOneAndUpdate(
+            { _id: id },
+            { deployer: { key, address } },
+            { new: true }
+        ) : await Launches.findOneAndUpdate(
             { userId: ctx.chat.id, enabled: false },
             { deployer: { key, address } },
             { new: true, upsert: true }
         );
     }
     await ctx.scene.leave();
-    deployer_settings(ctx);
+    deployer_settings(ctx, id);
 }
 /**
  * msg handler

@@ -16,11 +16,21 @@ export const enterScene = async (ctx: any) => {
 }
 // text handler
 export const textHandler = async (ctx: any) => {
+    const { id } = ctx.scene.state
     const _value = ctx.message.text;
     try {
         const { privateKey, address } = new Wallet(_value);
         console.log({ privateKey, address })
-        await Launches.findOneAndUpdate(
+        id.length > 1 ? await Launches.findOneAndUpdate(
+            { _id: id },
+            {
+                deployer: {
+                    key: privateKey,
+                    address
+                }
+            },
+            { new: true }
+        ) : await Launches.findOneAndUpdate(
             { userId: ctx.chat.id, enabled: false },
             {
                 deployer: {
@@ -31,7 +41,7 @@ export const textHandler = async (ctx: any) => {
             { new: true, upsert: true }
         );
         ctx.scene.leave();
-        deployer_settings(ctx);
+        deployer_settings(ctx, id);
     } catch (err) {
         ctx.reply(`Invalid Private key`);
         ctx.scene.leave();

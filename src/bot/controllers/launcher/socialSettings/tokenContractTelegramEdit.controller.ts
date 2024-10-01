@@ -1,5 +1,5 @@
-import { social_settings } from "."
-import Launches from "@/models/Launch"
+import { social_settings } from '.'
+import Launches from '@/models/Launch'
 
 export const enterScene = async (ctx: any) => {
     ctx.reply(`<b>Enter your Telegram chat/portal link</b>\n` + `<i>(example: https://t.me/wagyuprotocol)</i>`, {
@@ -13,11 +13,10 @@ export const enterScene = async (ctx: any) => {
 }
 
 export const textHandler = async (ctx: any) => {
-    await Launches.findOneAndUpdate(
-        { userId: ctx.chat.id, enabled: false },
-        { telegram: ctx.message.text },
-        { new: true, upsert: true }
-    );
-    await ctx.scene.leave();
-    social_settings(ctx);
+    const { id } = ctx.scene.state
+    id.length > 1
+        ? await Launches.findOneAndUpdate({ _id: id }, { telegram: ctx.message.text }, { new: true })
+        : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, { telegram: ctx.message.text }, { new: true, upsert: true })
+    await ctx.scene.leave()
+    social_settings(ctx, id)
 }

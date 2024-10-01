@@ -1,5 +1,5 @@
 import Launches from '@/models/Launch'
-import { setup_wizard } from './createLaunch.controller'
+import { launch_settings } from './createLaunch.controller'
 import { launch_variables } from "@/bot/controllers/launcher/launchVariables/index"
 
 /**
@@ -40,8 +40,8 @@ export const menu = async (ctx: any) => {
  * when click setup wizard button
  * @param ctx 
  */
-export const handleSetupWizard = async (ctx: any, type: string) => {
-    const launch = await Launches.findOneAndUpdate(
+export const handleSetupWizard = async (ctx: any, type: string, id: string = '') => {
+    const launch = id.length > 1 ? await Launches.findById(id) : await Launches.findOneAndUpdate(
         { userId: ctx.chat.id, enabled: false },
         {},
         { new: true, upsert: true }
@@ -49,24 +49,24 @@ export const handleSetupWizard = async (ctx: any, type: string) => {
     if (type === "bundledSnipers") {
         launch.bundledSnipers = !launch.bundledSnipers;
         await launch.save();
-        setup_wizard(ctx);
+        launch_settings(ctx, id);
     } else if (type === "instantLaunch") {
         if (!launch.instantLaunch) {
             launch.autoLP = true;
         }
         launch.instantLaunch = !launch.instantLaunch;
         await launch.save();
-        setup_wizard(ctx);
+        launch_settings(ctx, id);
     } else if (type === "autoLP") {
         if (launch.autoLP) {
             launch.instantLaunch = false;
         }
         launch.autoLP = !launch.autoLP;
         await launch.save();
-        setup_wizard(ctx);
+        launch_settings(ctx, id);
     } else if (type === "blacklistCapability") {
         launch.blacklistCapability = !launch.blacklistCapability;
         await launch.save();
-        launch_variables(ctx);
+        launch_variables(ctx, id);
     }
 }

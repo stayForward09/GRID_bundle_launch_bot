@@ -12,12 +12,7 @@ export default (_bot: any) => {
     _bot.action('launcher', menu)
     _bot.command('launcher', menu)
 
-    _bot.action('fee_settings', fee_settings)
     _bot.action('launch_token', menuLaunchToken)
     _bot.action('create_launch', create_launch)
     _bot.action('manage_launch', menuManageLaunch)
-    _bot.action('social_settings', social_settings)
-    _bot.action('launch_variables', launch_variables)
-    _bot.action('deployer_settings', deployer_settings)
-    _bot.action('token_distribution', token_distribution)
 }
