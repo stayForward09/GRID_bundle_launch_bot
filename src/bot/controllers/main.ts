@@ -9,6 +9,7 @@ import { previewLaunch, tokenLaunch } from './launcher/launchToken.controller'
 import { contractVerification, generalSettings, detail as tokenDetail } from './tokens'
 import { deleteLaunch, manageLaunchDetails } from './launcher/manageLaunch.controller'
 import { launch_variables } from './launcher/launchVariables'
+import { manageDeployer, sendEth, sendEthConfirm } from './launcher/manageDeployer'
 
 /**
  * start
@@ -93,5 +94,11 @@ export const callbackQuery = async (ctx: any) => {
         const id = selectedOption.split("_")[2]
         await Launches.deleteOne({ _id: id })
         launcher(ctx)
+    } else if (selectedOption.startsWith('manage_deployer_')) {
+        manageDeployer(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('send_eth_')) {
+        sendEth(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('sendEth_confirm_')) {
+        sendEthConfirm(ctx, selectedOption.split('_')[2])
     }
 }
