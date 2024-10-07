@@ -9,7 +9,7 @@ import { previewLaunch, tokenLaunch } from './launcher/launchToken.controller'
 import { contractVerification, generalSettings, detail as tokenDetail } from './tokens'
 import { deleteLaunch, manageLaunchDetails } from './launcher/manageLaunch.controller'
 import { launch_variables } from './launcher/launchVariables'
-import { estimateDeploymentCost, manageDeployer, sendEth, sendEthConfirm } from './launcher/manageDeployer'
+import { estimateDeploymentCost, manageDeployer, predictContractAddress, sendEth, sendEthConfirm } from './launcher/manageDeployer'
 
 /**
  * start
@@ -102,5 +102,7 @@ export const callbackQuery = async (ctx: any) => {
         sendEthConfirm(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('estimate_DeploymentCost_')) {
         estimateDeploymentCost(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('predict_tokenAddress_')) {
+        predictContractAddress(ctx, selectedOption.split('_')[2])
     }
 }

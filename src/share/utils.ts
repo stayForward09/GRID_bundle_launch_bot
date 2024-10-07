@@ -166,25 +166,3 @@ export const compileContract = ({
     });
 })
 
-
-// export const estimateContractAddress = async (privateKey, providerUrl) => {
-//     // Replace with your own values
-// const privateKey = 'your_private_key';
-// const providerUrl = 'https://your.ethereum.node.url';
-//     // Create a provider and signer
-//     const provider = new ethers.JsonRpcProvider(providerUrl);
-//     const wallet = new ethers.Wallet(privateKey, provider);
-
-//     // Get the nonce
-//     const nonce = await wallet.getTransactionCount();
-
-//     // Calculate the contract address
-//     const contractAddress = ethers.getContractAddress({
-//         from: wallet.address,
-//         nonce: nonce
-//     });
-
-//     console.log(Estimated contract address: ${contractAddress});
-// }
-
-

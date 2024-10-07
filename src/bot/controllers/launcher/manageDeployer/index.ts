@@ -158,10 +158,45 @@ export const estimateDeploymentCost = async (ctx: any, id: string) => {
         console.log(`Estimated gas: ${estimatedGas.toString()}`)
         console.log(`Current gas price: ${ethers.formatUnits(gasPrice, 'gwei')} gwei`)
         console.log(`Estimated deployment cost: ${deploymentCost} ETH`)
-        const text = `*Estimated Gas Cost * \n`+
-                `Current Price \\: \`${ethers.formatUnits(gasPrice, 'gwei')} gwei \`` + 
-                `Gas Cost \\: \` ${deploymentCost} ETH \`\n\n` + 
-                `Required Balance \\:  \` ${Number(deploymentCost) + 1} ETH \``
+        const text = `*Estimated Gas Cost * \n` + `Current Price \\: \`${ethers.formatUnits(gasPrice, 'gwei')} gwei \`` + `Gas Cost \\: \` ${deploymentCost} ETH \`\n\n` + `Required Balance \\:  \` ${Number(deploymentCost) + 1} ETH \``
+        ctx.replyWithMarkdownV2(text, {
+            reply_markup: {
+                one_time_keyboard: true,
+                // eslint-disable-next-line prettier/prettier
+                resize_keyboard: true
+            }
+        })
+    } catch (err) {
+        await ctx.reply(`<b>Error: </b><code>${String(err).split(':')[1]}</code>`, {
+            parse_mode: 'HTML',
+            reply_markup: {
+                one_time_keyboard: true,
+                resize_keyboard: true,
+                parse_mode: 'HTML',
+                inline_keyboard: [[{ text: '🔴 Failed', callback_data: `#` }]]
+            }
+        })
+    }
+}
+
+export const predictContractAddress = async (ctx: any, id: string) => {
+    const launch = await Launches.findById(id)
+    try {
+        const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC)
+        // const _privteKey = decrypt(launch.deployer.key);
+        const _privteKey = launch.deployer.key
+        const wallet = new Wallet(_privteKey, _jsonRpcProvider)
+
+        // Get the nonce
+        const nonce = await wallet.getNonce()
+
+        // Calculate the contract address
+        const contractAddress = ethers.getCreateAddress({
+            from: wallet.address,
+            nonce: nonce
+        })
+
+        const text = `This is the predicted contract address \\: \n \`${contractAddress} \`\n\n` + `_Keep in mind that this address will change every time the deployer wallet sends a new transaction\\._`
         ctx.replyWithMarkdownV2(text, {
             reply_markup: {
                 one_time_keyboard: true,
