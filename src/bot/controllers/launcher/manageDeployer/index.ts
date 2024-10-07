@@ -1,6 +1,7 @@
 import { CHAIN_INFO } from '@/config/constant'
 import Launches from '@/models/Launch'
-import { ethers, JsonRpcProvider, Wallet } from 'ethers'
+import { compileContract } from '@/share/utils'
+import { ContractFactory, ethers, JsonRpcProvider, Wallet } from 'ethers'
 
 export const manageDeployer = async (ctx: any, id: string) => {
     const launch = await Launches.findById(id)
@@ -14,7 +15,7 @@ export const manageDeployer = async (ctx: any, id: string) => {
         `*Deployer*\n` +
         `Use this menu to manage your deployer\\. \n\n` +
         `*Send ETH * –  Transfer ETH to another Address\\.\n` +
-        `*Estimate Deployment Cost * – Using the current GWEI, WAGYU will estimate the cost of deployment for your Token Launch\\. This is the minimum amount of ETH that will be required to be in the Deployer at the time of launch\\. This does not include the ETH required to be added to the Liquidity Pool \\(LP\\)\\.\n\n\n` +
+        `*Estimate Deployment Cost * – Using the current GWEI, GridBot will estimate the cost of deployment for your Token Launch\\. This is the minimum amount of ETH that will be required to be in the Deployer at the time of launch\\. This does not include the ETH required to be added to the Liquidity Pool \\(LP\\)\\.\n\n\n` +
         `Address: \`${deployerAddress}\`\n` +
         `Balance: \`${balanceEth} ETH \`\n`
     ctx.replyWithMarkdownV2(text, {
@@ -108,7 +109,7 @@ export const sendEthConfirm = async (ctx: any, id: string) => {
                 }
             })
         else {
-            await ctx.reply(`<b>Transaction Error: </b><code>${String(err).split(":")[1]}</code>`, {
+            await ctx.reply(`<b>Transaction Error: </b><code>${String(err).split(':')[1]}</code>`, {
                 parse_mode: 'HTML',
                 reply_markup: {
                     one_time_keyboard: true,
@@ -118,5 +119,65 @@ export const sendEthConfirm = async (ctx: any, id: string) => {
                 }
             })
         }
+    }
+}
+
+export const estimateDeploymentCost = async (ctx: any, id: string) => {
+    const launch = await Launches.findById(id)
+    if (!launch) {
+        ctx.reply(`⚠ There is no launch for this. Please check again`)
+        return
+    }
+    try {
+        const { abi, bytecode, sourceCode } = (await compileContract({
+            name: launch.name,
+            symbol: launch.symbol,
+            totalSupply: launch.totalSupply,
+            sellFee: launch.sellFee,
+            buyFee: launch.buyFee,
+            liquidityFee: launch.liquidityFee,
+            instantLaunch: launch.instantLaunch,
+            feeWallet: launch.feeWallet == 'Deployer Wallet' ? launch.deployer.address : launch.feeWallet
+        })) as any
+        console.log('succeed complied')
+        const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC)
+        // const _privteKey = decrypt(launch.deployer.key);
+        const _privteKey = launch.deployer.key
+        const wallet = ethers.Wallet.createRandom().connect(_jsonRpcProvider)
+        // Create a contract factory
+        const contractFactory = new ContractFactory(abi, bytecode, wallet)
+        // Get current gas price
+        const gasPrice = (await _jsonRpcProvider.getFeeData()).gasPrice
+        console.log('gasPrice', gasPrice)
+        // Estimate gas
+        const deploymentTx = await contractFactory.getDeployTransaction()
+        const estimatedGas = await _jsonRpcProvider.estimateGas(deploymentTx)
+        console.log('estimate', estimatedGas)
+        // Calculate deployment cost in ETH
+        const deploymentCost = ethers.formatEther(estimatedGas * gasPrice)
+        console.log(`Estimated gas: ${estimatedGas.toString()}`)
+        console.log(`Current gas price: ${ethers.formatUnits(gasPrice, 'gwei')} gwei`)
+        console.log(`Estimated deployment cost: ${deploymentCost} ETH`)
+        const text = `*Estimated Gas Cost * \n`+
+                `Current Price \\: \`${ethers.formatUnits(gasPrice, 'gwei')} gwei \`` + 
+                `Gas Cost \\: \` ${deploymentCost} ETH \`\n\n` + 
+                `Required Balance \\:  \` ${Number(deploymentCost) + 1} ETH \``
+        ctx.replyWithMarkdownV2(text, {
+            reply_markup: {
+                one_time_keyboard: true,
+                // eslint-disable-next-line prettier/prettier
+                resize_keyboard: true
+            }
+        })
+    } catch (err) {
+        await ctx.reply(`<b>Error: </b><code>${String(err).split(':')[1]}</code>`, {
+            parse_mode: 'HTML',
+            reply_markup: {
+                one_time_keyboard: true,
+                resize_keyboard: true,
+                parse_mode: 'HTML',
+                inline_keyboard: [[{ text: '🔴 Failed', callback_data: `#` }]]
+            }
+        })
     }
 }

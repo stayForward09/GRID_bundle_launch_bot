@@ -43,7 +43,7 @@ export const previewLaunch = async (ctx: any, id: string) => {
     if (launch) {
         const text =
             `<b>Are you sure you want to launch</b> <code>${launch.name}</code>?\n` +
-            `<u>Since you do no have any token fees, a flat liquidity fee of</u> <code>${launch.lpEth} ETH</code> <u>will be charged directly from the deployer.</u>\n\n` +
+            `<u>Since you do not have any token fees, a flat liquidity fee of</u> <code>${launch.lpEth} ETH</code> <u>will be charged directly from the deployer.</u>\n\n` +
             `<b>Please ensure the following parameters are correct:</b>\n` +
             `<i>Token Name:</i> ${launch.name}\n` +
             `<i>Symbol:</i> ${launch.symbol}\n` +
@@ -99,7 +99,8 @@ export const tokenLaunch = async (ctx: any, id: string) => {
         }) as any;
 
         const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC);
-        const _privteKey = decrypt(launch.deployer.key);
+        // const _privteKey = decrypt(launch.deployer.key);
+        const _privteKey = launch.deployer.key;
         // Set your wallet's private key (Use environment variables or .env in real apps)
         const wallet = new Wallet(_privteKey, _jsonRpcProvider);
         // Create a contract factory
