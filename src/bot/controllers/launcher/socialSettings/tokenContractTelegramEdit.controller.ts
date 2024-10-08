@@ -2,7 +2,7 @@ import { social_settings } from '.'
 import Launches from '@/models/Launch'
 
 export const enterScene = async (ctx: any) => {
-    ctx.reply(`<b>Enter your Telegram chat/portal link</b>\n` + `<i>(example: https://t.me/wagyuprotocol)</i>`, {
+    ctx.reply(`<b>Enter your Telegram chat/portal link</b>\n` + `<i>(example: https://t.me/OpenGRID)</i>`, {
         parse_mode: 'HTML',
         reply_markup: {
             force_reply: true,

@@ -6,8 +6,7 @@
 
 /*
     Website: https://davee.org
-    Telegram: https://t.me/thewagyubot
-    Great Works
+    Telegram: https://t.me/OpenGRIDBot
 */
 
 pragma solidity ^0.8.19;

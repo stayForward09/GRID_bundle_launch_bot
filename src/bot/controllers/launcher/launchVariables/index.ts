@@ -41,7 +41,7 @@ export const launch_variables = async (ctx: any, id: string = '') => {
             : [
                   [
                       { text: '⬅ Back', callback_data: 'setup_wizard' },
-                      { text: '➡ Next ', callback_data: 'token_distribution' }
+                      { text: '➡ Next ', callback_data: 'token_distribution_' }
                   ],
                   [{ text: '===== LAUNCH VARIABLES =====', callback_data: '#' }],
                   [

@@ -6,7 +6,7 @@
 
 /*
     Website: https://davee.org
-    Telegram: https://t.me/thewagyubot
+    Telegram: https://t.me/theOpenGRIDBot
     Great Works
 */
 
