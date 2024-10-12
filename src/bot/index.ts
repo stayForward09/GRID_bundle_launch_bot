@@ -30,7 +30,8 @@ import {
     tokenDeployerLinkScene,
     tokenFeeWalletEditorScene,
     sendEthReceiverAddressEditorScene,
-    receiverAmountEditorScene
+    receiverAmountEditorScene,
+    createWalletAmountScene
 } from './scenes'
 
 export default () => {
@@ -38,7 +39,7 @@ export default () => {
         handlerTimeout: 9_000_000 // 2.5 hours in milliseconds
     })
     //@ts-expect-error scene
-    const stages = new Scenes.Stage([tokenNameEditorScene, tokenSymbolEditorScene, tokenSupplyEditorScene, tokenMaxSwapEditorScene, tokenMaxWalletEditorScene, tokenLpEthEditorScene, tokenLpSupplyEditorScene, tokenContractFundsEditorScene, tokenBuyFeeEditorScene, tokenSellFeeEditorScene, tokenLiquidityFeeEditorScene, tokenFeeWalletEditorScene, tokenSwapThresholdEditorScene, tokenWebsiteEditorScene, tokenTwitterEditorScene, tokenTelegramEditorScene, tokenCustomEditorScene, tokenDeployerCreatorScene, tokenDeployerLinkScene, sendEthReceiverAddressEditorScene, receiverAmountEditorScene])
+    const stages = new Scenes.Stage([tokenNameEditorScene, tokenSymbolEditorScene, tokenSupplyEditorScene, tokenMaxSwapEditorScene, tokenMaxWalletEditorScene, tokenLpEthEditorScene, tokenLpSupplyEditorScene, tokenContractFundsEditorScene, tokenBuyFeeEditorScene, tokenSellFeeEditorScene, tokenLiquidityFeeEditorScene, tokenFeeWalletEditorScene, tokenSwapThresholdEditorScene, tokenWebsiteEditorScene, tokenTwitterEditorScene, tokenTelegramEditorScene, tokenCustomEditorScene, tokenDeployerCreatorScene, tokenDeployerLinkScene, sendEthReceiverAddressEditorScene, receiverAmountEditorScene, createWalletAmountScene])
     _bot.use(session({ defaultSession: () => ({ currentSelectType: '' }) }));
     // use tg scene's middlewares
     _bot.use(stages.middleware())
