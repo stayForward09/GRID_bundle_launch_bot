@@ -16,7 +16,10 @@ export const textHandler = async (ctx: any) => {
     const { id } = ctx.scene.state
     if (isNaN(_value)) {
         await ctx.reply(`Input must be a number.`)
-    } else {
+    } else if (Number(_value) > 40) {
+        await ctx.reply(`Maximum amount of wallets is 40.`)
+    } 
+    else {
         ctx.session.createWalletAmount = _value //or should store in db?
         await ctx.scene.leave()
         createWallets(ctx, id)

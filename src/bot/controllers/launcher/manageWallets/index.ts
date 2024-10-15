@@ -2,6 +2,7 @@ import { CHAIN_INFO } from '@/config/constant'
 import Launches from '@/models/Launch'
 import { encrypt } from '@/share/utils'
 import { ethers, JsonRpcProvider, Wallet } from 'ethers'
+import fs from 'fs'
 
 export const manageWallets = async (ctx: any, id: string) => {
     const launch = await Launches.findById(id)
@@ -46,11 +47,10 @@ export const manageWallets = async (ctx: any, id: string) => {
     })
 }
 
-export const createWallets = async (ctx: any, id: string) => {
+export const createWallets = async (ctx: any, id: string, flag: boolean = false) => {
     const walletAmount = ctx.session.createWalletAmount || 1
     const text =
-        `<b>Wallet Generation (Max: 40)</b>` +
-        `This tool will generate a new wallets for your bundle.\n` +
+        `<b>Wallet Generation (Max: 40)</b>\n` +
         `This tool will generate a new wallets for your bundle. \n\n` +
         `<b><u>Please note that the private keys cannot be downloaded or viewed ever again, so make sure to save them in a secure place.</u></b>`
     ctx.reply(text, {
@@ -60,7 +60,7 @@ export const createWallets = async (ctx: any, id: string) => {
                 [{ text: `Amount: ${walletAmount}`, callback_data: `scene_createWalletAmountScene_${id}` }],
                 [
                     { text: '✖️ Cancel', callback_data: `manage_wallets_${id}` },
-                    { text: '✨ Generate', callback_data: `generate_createWallet_${id}` }
+                    { text: `${flag === true ? '✔ Save' : '✨ Generate'}`, callback_data: `${flag === true ? `save_createWallet_${id}` : `generate_createWallet_${id}`}`  }
                 ]
             ],
             resize_keyboard: true
@@ -71,12 +71,31 @@ export const createWallets = async (ctx: any, id: string) => {
 export const generateWallets = async (ctx: any, id: string) => {
     const wallets: { address: string; key: string }[] = []
     const walletAmount = ctx.session.createWalletAmount || 1
+    let walletInfo = ''
     for (let i = 0; i < walletAmount; i++) {
         const wallet = Wallet.createRandom()
+        walletInfo += `wallet-#${i + 1} - ${wallet.address} \nPrivate Key: ${wallet.privateKey} \n\n`
         wallets.push({
             address: wallet.address,
             key: encrypt(wallet.privateKey)
         })
     }
     ctx.session.createdWallets = wallets
+    // Create a temporary file with wallet information
+    const fileName = `wallet_${Date.now()}.txt`
+    fs.writeFileSync(fileName, walletInfo)
+    await createWallets(ctx, id, true)
+    // Send the file to the user
+    await ctx.replyWithDocument(
+        { source: fileName },
+        {
+            caption: 'Here are your wallets and their private keys. Make sure to save them in a secure place.',
+            // reply_to_message_id: ctx.message.message_id, // Reply to the user's command message
+            parse_mode: 'HTML',
+            disable_notification: true
+        }
+    )
+
+    // Delete the temporary file
+    fs.unlinkSync(fileName)
 }
