@@ -34,7 +34,8 @@ export interface ILanuch extends Document {
         {
             address: string
             key: string
-            amount: number
+            min: number
+            max: number
         }
     ]
 }
@@ -145,7 +146,8 @@ const LaunchSchema: Schema = new Schema({
         {
             address: String,
             key: String,
-            amount: Number
+            min: Number,
+            max: Number
         }
     ],
     // if created, set true

@@ -41,7 +41,8 @@ export interface IToken extends Document {
         {
             address: string
             key: string
-            amount: number
+            min: number
+            max: number
         }
     ]
 }
@@ -171,7 +172,8 @@ const TokenSchema: Schema = new Schema({
         {
             address: String,
             key: String,
-            amount: Number
+            min: Number,
+            max: Number
         }
     ]
 })
