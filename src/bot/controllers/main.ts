@@ -10,7 +10,8 @@ import { contractVerification, generalSettings, detail as tokenDetail } from './
 import { deleteLaunch, manageLaunchDetails } from './launcher/manageLaunch.controller'
 import { launch_variables } from './launcher/launchVariables'
 import { estimateDeploymentCost, manageDeployer, predictContractAddress, sendEth, sendEthConfirm } from './launcher/manageDeployer'
-import { createWallets, generateWallets, manageWallets } from './launcher/manageWallets'
+import { createWallets, generateWallets, manageWallets, saveWallets } from './launcher/manageWallets'
+import { bundled_wallets } from './launcher/bundledWallets'
 
 /**
  * start
@@ -89,6 +90,8 @@ export const callbackQuery = async (ctx: any) => {
         social_settings(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('deployer_settings_')) {
         deployer_settings(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('bundled_wallets_')) {
+        bundled_wallets(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('delete_launch_')) {
         deleteLaunch(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('deleteLaunch_confirm_')) {
@@ -111,5 +114,7 @@ export const callbackQuery = async (ctx: any) => {
         createWallets(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('generate_createWallet_')) {
         generateWallets(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('save_createWallet_')) {
+        saveWallets(ctx, selectedOption.split('_')[2])
     }
 }

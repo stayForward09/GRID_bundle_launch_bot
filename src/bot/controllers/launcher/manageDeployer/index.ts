@@ -12,6 +12,7 @@ export const manageDeployer = async (ctx: any, id: string) => {
     const balanceWei = await provider.getBalance(deployerAddress)
     // Convert wei to ether
     const balanceEth = ethers.formatEther(balanceWei)
+    ctx.session.currentTag = 'manageDeployer'
     const text =
         `*Deployer*\n` +
         `Use this menu to manage your deployer\\. \n\n` +
@@ -23,7 +24,7 @@ export const manageDeployer = async (ctx: any, id: string) => {
         reply_markup: {
             one_time_keyboard: true,
             inline_keyboard: [
-                [{ text: '⬅️ Back', callback_data: `manage_launch_${id}` }],
+                [{ text: '⬅️ Back', callback_data: `${ctx.session.tagTitle == 'deployers' ? 'deployers' : `manage_launch_${id}`}` }],
                 [
                     { text: '📤 Send ETH', callback_data: `send_eth_${id}` },
                     { text: '📐 Estimate Deployment Cost ', callback_data: `estimate_DeploymentCost_${id}` }
@@ -63,7 +64,7 @@ export const sendEth = async (ctx: any, id: string) => {
                     { text: `Amount: ${amount ? amount : '0.0'} ETH`, callback_data: `scene_receiverAmountEditorScene_${id}` }
                 ],
                 [
-                    { text: '✖ Cancel', callback_data: `manage_deployer_${id}` },
+                    { text: '✖ Cancel', callback_data: `${ctx.session.currentTag == 'manageDeployer' ? `manage_deployer_${id}` : `manage_wallets_${id}`}` },
                     { text: '📤 Send', callback_data: `sendEth_confirm_${id}` }
                 ]
             ]

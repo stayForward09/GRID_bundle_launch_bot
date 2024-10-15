@@ -7,12 +7,10 @@ import fs from 'fs'
 export const manageWallets = async (ctx: any, id: string) => {
     const launch = await Launches.findById(id)
     const provider = new JsonRpcProvider(CHAIN_INFO.RPC)
-    const walletAddress = ''
-    // Get the balance in wei
-    // const balanceWei = await provider.getBalance(walletAddress)
-    // Convert wei to ether
-    // const balanceEth = ethers.formatEther(balanceWei)
-    const text =
+    const bundledWallets = launch.bundledWallets || []
+    ctx.session.currentTag = 'manageWallet'
+    ctx.reply(`🕐 Loading wallets...`)
+    let text =
         `*Bundled Wallets*\n` +
         `Create\\, Import\\, and Delete Wallets that will be used with your WAGYU launch\\. \n` +
         `_Funds can be added to Wallets at a later stage\\._ \n\n` +
@@ -22,22 +20,29 @@ export const manageWallets = async (ctx: any, id: string) => {
         `*Delete Wallet * – Delete an address from your Bundled Wallets\\. \n\n` +
         `*Send ETH * – Select a Wallet and Transfer its ETH to another Address\\. \n` +
         `*Wallets Disperse List * – Request a \\.txt file of the required amounts for your Wallet operation\\. \n\n` +
-        `*Total Required * – 0\\.9298 ETH \n\n` +
-        `Wallet: \`${walletAddress}\`\n` +
-        `Balance: \`${0} ETH \`\n`
+        `*Total Required * – 0\\.9298 ETH \n\n`
+    for (let i = 0; i < bundledWallets.length; i++) {
+        const walletAddress = bundledWallets[i].address
+        // Get the balance in wei
+        const balanceWei = await provider.getBalance(walletAddress)
+        // Convert wei to ether
+        const balanceEth = ethers.formatEther(balanceWei).replace('.', '\\.')
+        text += `🔹 *Wallet\\-\\#${i + 1}*  \\(\`${balanceEth}ETH\`\\) 🔹 \n  \`${walletAddress}\`\n\n`
+    }
+
     ctx.replyWithMarkdownV2(text, {
         reply_markup: {
             one_time_keyboard: true,
             inline_keyboard: [
-                [{ text: '⬅️ Back', callback_data: `manage_launch_${id}` }],
+                [{ text: '⬅️ Back', callback_data: `${ctx.session.tagTitle == 'snipers' ? 'snipers' : `manage_launch_${id}`}` }],
                 [
                     { text: '✔️ Create Wallet(s) ', callback_data: `manage_createWallets_${id}` },
-                    { text: '🔗 Import Wallet(s) ', callback_data: `manage_importWallets_${id}` },
-                    { text: '✖️ Delete Wallet(s) ', callback_data: `manage_deleteWallets_${id}` }
+                    { text: '🔗 Import Wallet(s) ', callback_data: `scene_importWalletScene_${id}` },
+                    { text: '✖️ Delete Wallet(s) ', callback_data: `scene_deleteWalletScene_${id}` }
                 ],
                 [
                     { text: '📜 Wallet Disperse List ', callback_data: `manage_walletDisperse_${id}` },
-                    { text: '📤 Send ETH ', callback_data: `manage_sendEth_${id}` }
+                    { text: '📤 Send ETH ', callback_data: `send_eth_${id}` }
                 ],
                 [{ text: '🗑 Empty All Wallets', callback_data: `manage_emptyWallets_${id}` }]
             ],
@@ -50,9 +55,7 @@ export const manageWallets = async (ctx: any, id: string) => {
 export const createWallets = async (ctx: any, id: string, flag: boolean = false) => {
     const walletAmount = ctx.session.createWalletAmount || 1
     const text =
-        `<b>Wallet Generation (Max: 40)</b>\n` +
-        `This tool will generate a new wallets for your bundle. \n\n` +
-        `<b><u>Please note that the private keys cannot be downloaded or viewed ever again, so make sure to save them in a secure place.</u></b>`
+        `<b>Wallet Generation (Max: 40)</b>\n` + `This tool will generate a new wallets for your bundle. \n\n` + `<b><u>Please note that the private keys cannot be downloaded or viewed ever again, so make sure to save them in a secure place.</u></b>`
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {
@@ -60,7 +63,7 @@ export const createWallets = async (ctx: any, id: string, flag: boolean = false)
                 [{ text: `Amount: ${walletAmount}`, callback_data: `scene_createWalletAmountScene_${id}` }],
                 [
                     { text: '✖️ Cancel', callback_data: `manage_wallets_${id}` },
-                    { text: `${flag === true ? '✔ Save' : '✨ Generate'}`, callback_data: `${flag === true ? `save_createWallet_${id}` : `generate_createWallet_${id}`}`  }
+                    { text: `${flag === true ? '✔ Save' : '✨ Generate'}`, callback_data: `${flag === true ? `save_createWallet_${id}` : `generate_createWallet_${id}`}` }
                 ]
             ],
             resize_keyboard: true
@@ -69,7 +72,8 @@ export const createWallets = async (ctx: any, id: string, flag: boolean = false)
 }
 
 export const generateWallets = async (ctx: any, id: string) => {
-    const wallets: { address: string; key: string }[] = []
+    const launch = await Launches.findById(id)
+    const wallets: {address: string, key: string}[] = launch.bundledWallets ?? []
     const walletAmount = ctx.session.createWalletAmount || 1
     let walletInfo = ''
     for (let i = 0; i < walletAmount; i++) {
@@ -80,7 +84,7 @@ export const generateWallets = async (ctx: any, id: string) => {
             key: encrypt(wallet.privateKey)
         })
     }
-    ctx.session.createdWallets = wallets
+    ctx.session.bundledWallets = wallets
     // Create a temporary file with wallet information
     const fileName = `wallet_${Date.now()}.txt`
     fs.writeFileSync(fileName, walletInfo)
@@ -98,4 +102,10 @@ export const generateWallets = async (ctx: any, id: string) => {
 
     // Delete the temporary file
     fs.unlinkSync(fileName)
+}
+
+export const saveWallets = async (ctx: any, id: string) => {
+    const bundledWallets = ctx.session.bundledWallets
+    await Launches.findByIdAndUpdate(id, { bundledWallets })
+    await manageWallets(ctx, id)
 }

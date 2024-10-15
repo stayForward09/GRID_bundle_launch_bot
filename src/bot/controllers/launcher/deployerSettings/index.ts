@@ -16,7 +16,7 @@ export const deployer_settings = async (ctx: any, id: string = '') => {
             inline_keyboard: [
                 [
                     { text: '⬅ Back', callback_data: `social_settings_${id}` },
-                    { text: '✔ Create', callback_data: `create_launch_confirm_${id}` }
+                    { text: '➡ Next', callback_data: `bundled_wallets_${id}` }
                 ],
                 [{ text: '===== DEPLOYER SETTINGS =====', callback_data: '#' }],
                 [

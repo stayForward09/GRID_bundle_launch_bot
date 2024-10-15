@@ -34,9 +34,10 @@ export interface ILanuch extends Document {
         {
             address: string
             key: string
-            amount: number
         }
     ]
+    minBuy: number
+    maxBuy: number
 }
 interface ILanuchModel extends Model<ILanuch> {}
 
@@ -144,10 +145,17 @@ const LaunchSchema: Schema = new Schema({
     bundledWallets: [
         {
             address: String,
-            key: String,
-            amount: Number
+            key: String
         }
     ],
+    minBuy: {
+        type: Number,
+        default: 0 //percent
+    },
+    maxBuy: {
+        type: Number,
+        default: 0 //percent
+    },
     // if created, set true
     enabled: {
         type: Boolean,
