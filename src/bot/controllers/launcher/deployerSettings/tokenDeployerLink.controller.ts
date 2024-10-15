@@ -1,6 +1,7 @@
 import { Wallet } from "ethers";
 import { deployer_settings } from "."
 import Launches from "@/models/Launch"
+import { encrypt } from "@/share/utils";
 
 export const enterScene = async (ctx: any) => {
     const text =
@@ -25,7 +26,7 @@ export const textHandler = async (ctx: any) => {
             { _id: id },
             {
                 deployer: {
-                    key: privateKey,
+                    key: encrypt(privateKey),
                     address
                 }
             },
@@ -34,7 +35,7 @@ export const textHandler = async (ctx: any) => {
             { userId: ctx.chat.id, enabled: false },
             {
                 deployer: {
-                    key: privateKey,
+                    key: encrypt(privateKey),
                     address
                 }
             },

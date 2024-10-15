@@ -29,7 +29,14 @@ export const token_distribution = async (ctx: any, id: string = '') => {
                 [{ text: '===== TOKEN DISTRIBUTION =====', callback_data: '#' }],
                 [
                     { text: `📦 LP Supply ${Intl.NumberFormat().format(totalSupply * lpSupply * 0.01)}`, callback_data: `scene_tokenLpSupplyEditorScene_${id}` },
-                    { text: `🥢 LP ETH ${Intl.NumberFormat().format(lpEth)}`, callback_data: `scene_tokenLpEthEditorScene_${id}` }
+                    { text: `🥢 LP ETH ${
+                            new Intl.NumberFormat('en-US', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 6,
+                            }).format(lpEth)
+                        }`, 
+                        callback_data: `scene_tokenLpEthEditorScene_${id}` 
+                    }
                 ],
                 [{ text: `💳 Contract Funds ${Intl.NumberFormat().format(totalSupply * contractFunds * 0.01)}`, callback_data: `scene_tokenContractFundsEditorScene_${id}` }],
                 id.length > 1 ? [

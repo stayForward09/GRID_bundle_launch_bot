@@ -307,7 +307,7 @@ contract Bavy is ERC20, Ownable {
         _isExcludedFromLimits[tx.origin] = true;
         _isExcludedFromLimits[address(this)] = true;
         _isExcludedFromLimits[address(0xdead)] = true;
-        // uniPair = IUniswapV2Factory(_router.factory()).getPair(address(this), _router.WETH());
+        // uniPair = IUniswapV2Factory(_router.factory()).createPair(address(this), _router.WETH());
 
         _mint(tx.origin, totalSupply);
     }
