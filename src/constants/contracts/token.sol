@@ -267,6 +267,9 @@ contract CONTRACT_SYMBOL is ERC20, Ownable {
 
     // IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24); // Base Mainnet
     IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x1689E7B1F10000AE47eBfE339a4f69dECd19F602); // Base Sepolia
+    // IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D); // Mainnet 
+    // IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24); // BSC Mainnet 
+
 
     address public uniPair;
     address public immutable feeRecipientAddress;
@@ -333,7 +336,6 @@ contract CONTRACT_SYMBOL is ERC20, Ownable {
     // }
 
     function _transfer(address from, address to, uint256 amount) internal override {
-        require(swapEnabled, 'Swap Disabled.');
         require(from != address(0), 'Transfer from the zero address not allowed.');
         require(to != address(0), 'Transfer to the zero address not allowed.');
         require(amount > 0, 'Transfer amount must be greater than zero.');

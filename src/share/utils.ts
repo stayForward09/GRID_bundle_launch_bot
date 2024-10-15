@@ -47,7 +47,7 @@ export const decrypt = (cipherText: string, key?: string) => {
             throw "empty string";
         }
     } catch (err) {
-        throw "invalid"
+        throw "invalid private key"
     }
 }
 
@@ -128,7 +128,7 @@ export const compileContract = ({
     _sourceCode = _sourceCode.replace(/CONTRACT_BUY_FEE/g, buyFee);
     _sourceCode = _sourceCode.replace(/CONTRACT_SELL_FEE/g, sellFee);
     _sourceCode = _sourceCode.replace(/CONTRACT_LP_FEE/g, liquidityFee);
-    _sourceCode = _sourceCode.replace("CONTRACT_INSTANT_LAUNCH_ENABLED", instantLaunch ? 'uniPair = IUniswapV2Factory(_router.factory()).getPair(address(this), _router.WETH());' : "")
+    _sourceCode = _sourceCode.replace("CONTRACT_INSTANT_LAUNCH_ENABLED", instantLaunch ? 'uniPair = IUniswapV2Factory(_router.factory()).createPair(address(this), _router.WETH());' : "")
     _sourceCode = _sourceCode.replace("CONTRACT_FEE_WALLET", feeWallet)
 
     // Solc input and settings

@@ -2,6 +2,7 @@ import { CHAIN_INFO } from '@/config/constant'
 import Launches from '@/models/Launch'
 import { compileContract } from '@/share/utils'
 import { ContractFactory, ethers, JsonRpcProvider, Wallet } from 'ethers'
+import { decrypt } from '@/share/utils'
 
 export const manageDeployer = async (ctx: any, id: string) => {
     const launch = await Launches.findById(id)
@@ -139,11 +140,14 @@ export const estimateDeploymentCost = async (ctx: any, id: string) => {
             instantLaunch: launch.instantLaunch,
             feeWallet: launch.feeWallet == 'Deployer Wallet' ? launch.deployer.address : launch.feeWallet
         })) as any
+        console.log(sourceCode)
         console.log('succeed complied')
-        const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC)
+        const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC);
         // const _privteKey = decrypt(launch.deployer.key);
-        const _privteKey = launch.deployer.key
-        const wallet = ethers.Wallet.createRandom().connect(_jsonRpcProvider)
+        const _privteKey = launch.deployer.key;
+        // Set your wallet's private key (Use environment variables or .env in real apps)
+        const wallet = new Wallet(_privteKey, _jsonRpcProvider);
+        console.log({_privteKey, wallet})
         // Create a contract factory
         const contractFactory = new ContractFactory(abi, bytecode, wallet)
         // Get current gas price
@@ -167,6 +171,7 @@ export const estimateDeploymentCost = async (ctx: any, id: string) => {
             }
         })
     } catch (err) {
+        console.log(err)
         await ctx.reply(`<b>Error: </b><code>${String(err).split(':')[1]}</code>`, {
             parse_mode: 'HTML',
             reply_markup: {
