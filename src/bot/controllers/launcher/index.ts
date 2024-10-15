@@ -7,7 +7,7 @@ import { launch_variables } from "@/bot/controllers/launcher/launchVariables/ind
  * @param ctx
  */
 export const menu = async (ctx: any) => {
-
+    ctx.sesson.tagTitle = 'launcher'
     const text =
         `Launcher\n` +
         `Would you like to Create or Manage a token launch?\n` +
