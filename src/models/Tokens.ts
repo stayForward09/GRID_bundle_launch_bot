@@ -1,4 +1,4 @@
-import { Schema, Model, model } from "mongoose";
+import { Schema, Model, model } from 'mongoose'
 
 export interface IToken extends Document {
     bundledSnipers: boolean
@@ -10,107 +10,137 @@ export interface IToken extends Document {
     totalSupply: number
     maxSwap: number
     maxWallet: number
-    blacklistCapability: boolean,
+    blacklistCapability: boolean
 
-    lpSupply: number,
+    lpSupply: number
     lpEth: number
     contractFunds: number
 
     feeWallet: string
     buyFee: number
     sellFee: number
-    liquidityFee: number,
-    swapThreshold: number,
+    liquidityFee: number
+    swapThreshold: number
 
-    website: string,
-    twitter: string,
+    website: string
+    twitter: string
     telegram: string
     custom: string
     deployer: {
-        address: string,
+        address: string
         key: string
-    },
+    }
 
-    address: string,
-    verified: boolean,
-    abi: string,
-    byteCode: string,
+    address: string
+    verified: boolean
+    abi: string
+    byteCode: string
     sourceCode: string
+
+    bundledWallets: [
+        {
+            address: string
+            key: string
+            amount: number
+        }
+    ]
 }
-interface ITokenModel extends Model<IToken> { }
+interface ITokenModel extends Model<IToken> {}
 
 const TokenSchema: Schema = new Schema({
     /////// bot username
     userId: {
-        type: String, require: true
+        type: String,
+        require: true
     },
     /////// launch settings
     bundledSnipers: {
-        type: Boolean, default: false
+        type: Boolean,
+        default: false
     },
     instantLaunch: {
-        type: Boolean, default: false
+        type: Boolean,
+        default: false
     },
     autoLP: {
-        type: Boolean, default: false
+        type: Boolean,
+        default: false
     },
     /////// token variables
     name: {
-        type: String, require: true
+        type: String,
+        require: true
     },
     symbol: {
-        type: String, require: true
+        type: String,
+        require: true
     },
     totalSupply: {
-        type: Number, require: true
+        type: Number,
+        require: true
     },
     maxSwap: {
-        type: Number, default: 0
+        type: Number,
+        default: 0
     },
     maxWallet: {
-        type: Number, default: 0
+        type: Number,
+        default: 0
     },
     blacklistCapability: {
-        type: Boolean, default: false
+        type: Boolean,
+        default: false
     },
     /////// token distribution
     lpSupply: {
-        type: Number, default: 100 //percent
+        type: Number,
+        default: 100 //percent
     },
     lpEth: {
-        type: Number, default: 1
+        type: Number,
+        default: 1
     },
     contractFunds: {
-        type: Number, default: 0 //percent
+        type: Number,
+        default: 0 //percent
     },
     /////// fee settings
     feeWallet: {
-        type: String, default: 'Deployer Wallet'
+        type: String,
+        default: 'Deployer Wallet'
     },
     buyFee: {
-        type: Number, default: 0 //percent
+        type: Number,
+        default: 0 //percent
     },
     sellFee: {
-        type: Number, default: 0 //percent
+        type: Number,
+        default: 0 //percent
     },
     liquidityFee: {
-        type: Number, default: 0 //percent
+        type: Number,
+        default: 0 //percent
     },
     swapThreshold: {
-        type: Number, default: 0.5 //percent
+        type: Number,
+        default: 0.5 //percent
     },
     /////// social settings
     website: {
-        type: String, default: ""
+        type: String,
+        default: ''
     },
     twitter: {
-        type: String, default: ""
+        type: String,
+        default: ''
     },
     telegram: {
-        type: String, default: ""
+        type: String,
+        default: ''
     },
     custom: {
-        type: String, default: ""
+        type: String,
+        default: ''
     },
     deployer: {
         address: String,
@@ -136,7 +166,14 @@ const TokenSchema: Schema = new Schema({
     sourceCode: {
         type: String,
         require: true
-    }
+    },
+    bundledWallets: [
+        {
+            address: String,
+            key: String,
+            amount: Number
+        }
+    ]
 })
 
 const Tokens: ITokenModel = model<IToken, ITokenModel>('tokens', TokenSchema)
