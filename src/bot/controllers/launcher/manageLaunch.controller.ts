@@ -49,7 +49,7 @@ export const manageLaunchDetails = async (ctx: any, id: string) => {
                     { text: '❌ Delete Launch ', callback_data: `delete_launch_${launch.id}` }
                 ],
                 [
-                    { text: '🎯 Manage Snipers', callback_data: `manage_snipers_${launch.id}` },
+                    { text: '📦 Manage Wallets', callback_data: `manage_wallets_${launch.id}` },
                     { text: '👑 Manage Deployer', callback_data: `manage_deployer_${launch.id}` }
                 ],
                 [{ text: '⬅️ Back', callback_data: 'manage_launch' }]

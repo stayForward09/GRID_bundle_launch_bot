@@ -10,6 +10,7 @@ import { contractVerification, generalSettings, detail as tokenDetail } from './
 import { deleteLaunch, manageLaunchDetails } from './launcher/manageLaunch.controller'
 import { launch_variables } from './launcher/launchVariables'
 import { estimateDeploymentCost, manageDeployer, predictContractAddress, sendEth, sendEthConfirm } from './launcher/manageDeployer'
+import { createWallets, generateWallets, manageWallets } from './launcher/manageWallets'
 
 /**
  * start
@@ -104,5 +105,11 @@ export const callbackQuery = async (ctx: any) => {
         estimateDeploymentCost(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('predict_tokenAddress_')) {
         predictContractAddress(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('manage_wallets_')) {
+        manageWallets(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('manage_createWallets_')) {
+        createWallets(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('generate_createWallet_')) {
+        generateWallets(ctx, selectedOption.split('_')[2])
     }
 }
