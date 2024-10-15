@@ -316,25 +316,6 @@ contract CONTRACT_SYMBOL is ERC20, Ownable {
         _mint(tx.origin, totalSupply);
     }
 
-    // function openTrading() external onlyOwner() {
-    //     require(!tradingOpen,"Trading is already open");
-    //     // create trading pair and exclude from max transaction
-
-    //     _approve(address(this), address(_router), totalSupply());
-    //     _router.addLiquidityETH{value: address(this).balance}(
-    //         address(this),
-    //         balanceOf(address(this)),
-    //         0,
-    //         0,
-    //         address(_msgSender()),
-    //         block.timestamp
-    //     );
-
-    //     IERC20(uniPair).approve(address(_router), type(uint).max);
-    //     swapEnabled = true;
-    //     tradingOpen = true;
-    // }
-
     function _transfer(address from, address to, uint256 amount) internal override {
         require(from != address(0), 'Transfer from the zero address not allowed.');
         require(to != address(0), 'Transfer to the zero address not allowed.');
