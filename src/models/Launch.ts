@@ -1,7 +1,6 @@
 import { Schema, Model, model } from 'mongoose'
 
 export interface ILanuch extends Document {
-    bundledSnipers: boolean
     instantLaunch: boolean
     autoLP: boolean
 
@@ -48,10 +47,6 @@ const LaunchSchema: Schema = new Schema({
         require: true
     },
     /////// launch settings
-    bundledSnipers: {
-        type: Boolean,
-        default: false
-    },
     instantLaunch: {
         type: Boolean,
         default: false

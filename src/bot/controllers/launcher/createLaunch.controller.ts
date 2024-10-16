@@ -41,12 +41,11 @@ export const launch_settings = async (ctx: any, id: string = '') => {
                   [{ text: '➡ Next ', callback_data: `launch_variables_${launch.id}` }],
                   [{ text: '===== LAUNCH SETTINGS =====', callback_data: '#' }],
                   [
-                      { text: `${launch.bundledSnipers ? '🟢' : '🔴'} Bundled Snipers`, callback_data: `bundledSnipers_${launch.id}` },
+                      { text: `${launch.autoLP ? '🟢' : '🔴'} Auto LP`, callback_data: `autoLP_${launch.id}` },
                       { text: `${launch.instantLaunch ? '🟢' : '🔴'} Instant Launch`, callback_data: `instantLaunch_${launch.id}` }
                   ],
-                  [{ text: `${launch.autoLP ? '🟢' : '🔴'} Auto LP`, callback_data: `autoLP_${launch.id}` }],
                   [
-                      { text: '✖ Cancel', callback_data: `manage_launch_${launch.id}`},
+                      { text: '✖ Cancel', callback_data: `manage_launch_${launch.id}` },
                       { text: '✔️ Save ', callback_data: `manage_launch_${launch.id}` }
                   ]
               ]
@@ -57,10 +56,9 @@ export const launch_settings = async (ctx: any, id: string = '') => {
                   ],
                   [{ text: '===== LAUNCH SETTINGS =====', callback_data: '#' }],
                   [
-                      { text: `${launch.bundledSnipers ? '🟢' : '🔴'} Bundled Snipers`, callback_data: 'bundledSnipers_' },
-                      { text: `${launch.instantLaunch ? '🟢' : '🔴'} Instant Launch`, callback_data: 'instantLaunch_' }
-                  ],
-                  [{ text: `${launch.autoLP ? '🟢' : '🔴'} Auto LP`, callback_data: 'autoLP_' }]
+                      { text: `${launch.autoLP ? '🟢' : '🔴'} Auto LP`, callback_data: `autoLP_${launch.id}` },
+                      { text: `${launch.instantLaunch ? '🟢' : '🔴'} Instant Launch`, callback_data: `instantLaunch_${launch.id}` }
+                  ]
               ]
 
     ctx.reply(text, {

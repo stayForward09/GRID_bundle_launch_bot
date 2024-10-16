@@ -73,7 +73,7 @@ export const createWallets = async (ctx: any, id: string, flag: boolean = false)
 
 export const generateWallets = async (ctx: any, id: string) => {
     const launch = await Launches.findById(id)
-    const wallets: {address: string, key: string}[] = launch.bundledWallets ?? []
+    const wallets: { address: string; key: string }[] = launch.bundledWallets ?? []
     const walletAmount = ctx.session.createWalletAmount || 1
     let walletInfo = ''
     for (let i = 0; i < walletAmount; i++) {

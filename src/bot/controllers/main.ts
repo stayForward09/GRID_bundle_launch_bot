@@ -48,8 +48,6 @@ export const callbackQuery = async (ctx: any) => {
     if (selectedOption == 'setup_wizard') {
         await Launches.deleteMany({ userId: ctx.chat.id, enabled: false })
         launch_settings(ctx)
-    } else if (selectedOption.startsWith('bundledSnipers_') || selectedOption.startsWith('instantLaunch_') || selectedOption.startsWith('autoLP_') || selectedOption.startsWith('blacklistCapability_')) {
-        handleSetupWizard(ctx, selectedOption.split('_')[0], selectedOption.split('_')[1])
     } else if (selectedOption.startsWith('scene_')) {
         const [_, sceneName, id] = selectedOption.split('_')
         ctx.scene.enter(sceneName, { id: id })
@@ -95,7 +93,7 @@ export const callbackQuery = async (ctx: any) => {
     } else if (selectedOption.startsWith('delete_launch_')) {
         deleteLaunch(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('deleteLaunch_confirm_')) {
-        const id = selectedOption.split("_")[2]
+        const id = selectedOption.split('_')[2]
         await Launches.deleteOne({ _id: id })
         launcher(ctx)
     } else if (selectedOption.startsWith('manage_deployer_')) {

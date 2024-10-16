@@ -1,7 +1,6 @@
 import { Schema, Model, model } from 'mongoose'
 
 export interface IToken extends Document {
-    bundledSnipers: boolean
     instantLaunch: boolean
     autoLP: boolean
 
@@ -54,10 +53,6 @@ const TokenSchema: Schema = new Schema({
         require: true
     },
     /////// launch settings
-    bundledSnipers: {
-        type: Boolean,
-        default: false
-    },
     instantLaunch: {
         type: Boolean,
         default: false

@@ -305,7 +305,6 @@ export const tokenLaunch = async (ctx: any, id: string) => {
         return
         new Tokens({
             userId: ctx.chat.id,
-            bundledSnipers: launch.bundledSnipers,
             instantLaunch: launch.instantLaunch,
             autoLP: launch.autoLP,
             name: launch.name,
@@ -697,7 +696,6 @@ export const tokenLaunchTemp = async (ctx: any, id: string) => {
         // console.log("Contract Address: ", deploymentReceipt.contractAddress);
         new Tokens({
             userId: ctx.chat.id,
-            bundledSnipers: launch.bundledSnipers,
             instantLaunch: launch.instantLaunch,
             autoLP: launch.autoLP,
             name: launch.name,
