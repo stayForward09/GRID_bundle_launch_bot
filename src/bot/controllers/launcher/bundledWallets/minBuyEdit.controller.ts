@@ -15,7 +15,7 @@ export const enterScene = async (ctx: any) => {
 export const textHandler = async (ctx: any) => {
     const _value = Number(ctx.message.text)
     const { id } = ctx.scene.state
-    const { maxWallet } = await Launches.findById(id)
+    const { maxSwap, maxBuy } = id.length > 1 ? await Launches.findById(id) : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, {}, { new: true, upsert: true })
     if (isNaN(_value)) {
         ctx.reply(`<b>Invalid Number: </b> Min Wallet Buy must be a number.`, {
             parse_mode: 'HTML',
@@ -25,7 +25,7 @@ export const textHandler = async (ctx: any) => {
                 resize_keyboard: true
             }
         })
-    } else if (_value > maxWallet || _value < 0) {
+    } else if (_value > maxBuy || _value < 0) {
         ctx.reply(`Min wallet Buy must be greater than 0 and less than Max Wallet Buy.`, {
             parse_mode: 'HTML',
             reply_markup: {
@@ -36,7 +36,7 @@ export const textHandler = async (ctx: any) => {
         })
     } else {
         id.length > 1 ? await Launches.findOneAndUpdate({ _id: id }, { minBuy: _value }, { new: true }) : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, { minBuy: _value }, { new: true, upsert: true })
-        await ctx.scene.leave()
         bundled_wallets(ctx, id)
     }
+    await ctx.scene.leave()
 }

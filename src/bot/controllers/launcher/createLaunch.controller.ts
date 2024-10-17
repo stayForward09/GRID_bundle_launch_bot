@@ -38,26 +38,28 @@ export const launch_settings = async (ctx: any, id: string = '') => {
     const inlineKeyboard =
         id.length > 1
             ? [
-                  [{ text: '➡ Next ', callback_data: `launch_variables_${launch.id}` }],
                   [{ text: '===== LAUNCH SETTINGS =====', callback_data: '#' }],
                   [
                       { text: `${launch.autoLP ? '🟢' : '🔴'} Auto LP`, callback_data: `autoLP_${launch.id}` },
                       { text: `${launch.instantLaunch ? '🟢' : '🔴'} Instant Launch`, callback_data: `instantLaunch_${launch.id}` }
                   ],
+                  [{ text: '======', callback_data: '#' }],
+                  [{ text: '➡ Next ', callback_data: `launch_variables_${launch.id}` }],
                   [
                       { text: '✖ Cancel', callback_data: `manage_launch_${launch.id}` },
                       { text: '✔️ Save ', callback_data: `manage_launch_${launch.id}` }
                   ]
               ]
             : [
-                  [
-                      { text: '✖ Cancel', callback_data: 'create_launch' },
-                      { text: '➡ Next ', callback_data: 'launch_variables_' }
-                  ],
                   [{ text: '===== LAUNCH SETTINGS =====', callback_data: '#' }],
                   [
                       { text: `${launch.autoLP ? '🟢' : '🔴'} Auto LP`, callback_data: `autoLP_${launch.id}` },
                       { text: `${launch.instantLaunch ? '🟢' : '🔴'} Instant Launch`, callback_data: `instantLaunch_${launch.id}` }
+                  ],
+                  [{ text: '======', callback_data: '#' }],
+                  [
+                      { text: '✖ Cancel', callback_data: 'create_launch' },
+                      { text: '➡ Next ', callback_data: 'launch_variables_' }
                   ]
               ]
 

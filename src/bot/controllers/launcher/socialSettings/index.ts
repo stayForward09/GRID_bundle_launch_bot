@@ -1,20 +1,11 @@
-import Launches from "@/models/Launch";
+import Launches from '@/models/Launch'
 
 /**
  * Launch Varaible Settings
- * @param ctx 
+ * @param ctx
  */
 export const social_settings = async (ctx: any, id: string = '') => {
-    const {
-        website,
-        twitter,
-        telegram,
-        custom
-    } = id.length > 1 ? await Launches.findById(id) : await Launches.findOneAndUpdate(
-        { userId: ctx.chat.id, enabled: false },
-        {},
-        { new: true, upsert: true }
-    );
+    const { website, twitter, telegram, custom } = id.length > 1 ? await Launches.findById(id) : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, {}, { new: true, upsert: true })
 
     const text =
         `<b>Launch Creation in Progress…</b>\n` +
@@ -23,17 +14,12 @@ export const social_settings = async (ctx: any, id: string = '') => {
         `<b>X/Twitter </b> – Your X/Twitter profile URL.\n` +
         `<b>Telegram </b> – The Telegram chat/portal of your project.\n` +
         `<b>Custom </b> – This is any additional text you want in the comment box.\n` +
-        `It will be added after that last social link. You can also use this instead of the socials.`;
-
+        `It will be added after that last social link. You can also use this instead of the socials.`
 
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [
-                    { text: '⬅ Back', callback_data: `fee_settings_${id}` },
-                    { text: '➡ Next ', callback_data: `deployer_settings_${id}` }
-                ],
                 [{ text: '===== SOCIAL SETTINGS =====', callback_data: '#' }],
                 [
                     { text: `🌐 Website: ${website}`, callback_data: `scene_tokenWebsiteEditorScene_${id}` },
@@ -42,6 +28,11 @@ export const social_settings = async (ctx: any, id: string = '') => {
                 [
                     { text: `🗨 Telegram: ${telegram}`, callback_data: `scene_tokenTelegramEditorScene_${id}` },
                     { text: `✏ Custom: ${custom}`, callback_data: `scene_tokenCustomEditorScene_${id}` }
+                ],
+                [{ text: '======', callback_data: '#' }],
+                [
+                    { text: '⬅ Back', callback_data: `fee_settings_${id}` },
+                    { text: '➡ Next ', callback_data: `deployer_settings_${id}` }
                 ],
                 id.length > 1
                     ? [

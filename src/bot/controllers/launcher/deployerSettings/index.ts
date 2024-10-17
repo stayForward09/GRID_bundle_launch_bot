@@ -14,14 +14,15 @@ export const deployer_settings = async (ctx: any, id: string = '') => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [
-                    { text: '⬅ Back', callback_data: `social_settings_${id}` },
-                    { text: '➡ Next', callback_data: `bundled_wallets_${id}` }
-                ],
                 [{ text: '===== DEPLOYER SETTINGS =====', callback_data: '#' }],
                 [
                     { text: `✍ Create Deployer`, callback_data: `scene_tokenDeployerCreatorScene_${id}` },
                     { text: `🔗 Link Deployer`, callback_data: `scene_tokenDeployerLinkScene_${id}` }
+                ],
+                [{ text: '======', callback_data: '#' }],
+                [
+                    { text: '⬅ Back', callback_data: `social_settings_${id}` },
+                    { text: '➡ Next', callback_data: `bundled_wallets_${id}` }
                 ],
                 id.length > 1
                     ? [

@@ -18,10 +18,6 @@ export const launch_variables = async (ctx: any, id: string = '') => {
     const inlineKeyboard =
         id.length > 1
             ? [
-                  [
-                      { text: '⬅ Back', callback_data: `edit_launch_${id}` },
-                      { text: '➡ Next ', callback_data: `token_distribution_${id}` }
-                  ],
                   [{ text: '===== LAUNCH VARIABLES =====', callback_data: '#' }],
                   [
                       { text: `✏ ${name}`, callback_data: `scene_tokenNameEditorScene_${id}` },
@@ -29,20 +25,21 @@ export const launch_variables = async (ctx: any, id: string = '') => {
                   ],
                   [{ text: `🗳 ${Intl.NumberFormat().format(totalSupply)}`, callback_data: `scene_tokenSupplyEditorScene_${id}` }],
                   [
-                      { text: `${maxSwap ? '🟢' : '🔴'} Max Swap ${maxSwap}%`, callback_data: `scene_tokenMaxSwapEditorScene_${id}` },
-                      { text: `${maxWallet ? '🟢' : '🔴'} Max Wallet ${maxWallet}%`, callback_data: `scene_tokenMaxWalletEditorScene_${id}` }
+                      { text: `${maxWallet ? '🟢' : '🔴'} Max Wallet ${maxWallet}%`, callback_data: `scene_tokenMaxWalletEditorScene_${id}` },
+                      { text: `${maxSwap ? '🟢' : '🔴'} Max Swap ${maxSwap}%`, callback_data: `scene_tokenMaxSwapEditorScene_${id}` }
                   ],
                   [{ text: `${blacklistCapability ? '🟢' : '🔴'} Blacklist Capability`, callback_data: `blacklistCapability_${id}` }],
+                  [{ text: '======', callback_data: '#' }],
+                  [
+                      { text: '⬅ Back', callback_data: `edit_launch_${id}` },
+                      { text: '➡ Next ', callback_data: `token_distribution_${id}` }
+                  ],
                   [
                       { text: '✖ Cancel', callback_data: `manage_launch_${id}` },
                       { text: '✔️ Save ', callback_data: `manage_launch_${id}` }
                   ]
               ]
             : [
-                  [
-                      { text: '⬅ Back', callback_data: 'setup_wizard' },
-                      { text: '➡ Next ', callback_data: 'token_distribution_' }
-                  ],
                   [{ text: '===== LAUNCH VARIABLES =====', callback_data: '#' }],
                   [
                       { text: `✏ ${name}`, callback_data: 'scene_tokenNameEditorScene_' },
@@ -50,10 +47,15 @@ export const launch_variables = async (ctx: any, id: string = '') => {
                   ],
                   [{ text: `🗳 ${Intl.NumberFormat().format(totalSupply)}`, callback_data: 'scene_tokenSupplyEditorScene_' }],
                   [
-                      { text: `${maxSwap ? '🟢' : '🔴'} Max Swap ${maxSwap}%`, callback_data: 'scene_tokenMaxSwapEditorScene_' },
-                      { text: `${maxWallet ? '🟢' : '🔴'} Max Wallet ${maxWallet}%`, callback_data: 'scene_tokenMaxWalletEditorScene_' }
+                      { text: `${maxWallet ? '🟢' : '🔴'} Max Wallet ${maxWallet}%`, callback_data: 'scene_tokenMaxWalletEditorScene_' },
+                      { text: `${maxSwap ? '🟢' : '🔴'} Max Swap ${maxSwap}%`, callback_data: 'scene_tokenMaxSwapEditorScene_' }
                   ],
-                  [{ text: `${blacklistCapability ? '🟢' : '🔴'} Blacklist Capability`, callback_data: 'blacklistCapability_' }]
+                  [{ text: `${blacklistCapability ? '🟢' : '🔴'} Blacklist Capability`, callback_data: 'blacklistCapability_' }],
+                  [{ text: '======', callback_data: '#' }],
+                  [
+                      { text: '⬅ Back', callback_data: 'setup_wizard' },
+                      { text: '➡ Next ', callback_data: 'token_distribution_' }
+                  ]
               ]
     ctx.reply(text, {
         parse_mode: 'HTML',

@@ -17,10 +17,6 @@ export const fee_settings = async (ctx: any, id: string = '') => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [
-                    { text: '⬅ Back', callback_data: `token_distribution_${id}` },
-                    { text: '➡ Next ', callback_data: `social_settings_${id}` }
-                ],
                 [{ text: '===== FEE SETTINGS =====', callback_data: '#' }],
 
                 [{ text: `Fee Wallet: ${feeWallet}`, callback_data: `scene_tokenFeeWalletEditorScene_${id}` }],
@@ -30,6 +26,11 @@ export const fee_settings = async (ctx: any, id: string = '') => {
                 ],
                 [{ text: `${liquidityFee ? '🟢' : '🔴'} Liquidity Fee ${liquidityFee}$`, callback_data: `scene_tokenLiquidityFeeEditorScene_${id}` }],
                 buyFee > 0 || sellFee > 0 ? [{ text: `⚖ Swap Threshold ${swapThreshold}%`, callback_data: `scene_tokenSwapThresholdEditorScene_${id}` }] : [],
+                [{ text: '======', callback_data: '#' }],
+                [
+                    { text: '⬅ Back', callback_data: `token_distribution_${id}` },
+                    { text: '➡ Next ', callback_data: `social_settings_${id}` }
+                ],
                 id.length > 1
                     ? [
                           { text: '✖ Cancel', callback_data: `manage_launch_${id}` },
