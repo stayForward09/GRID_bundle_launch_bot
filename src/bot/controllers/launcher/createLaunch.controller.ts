@@ -53,8 +53,8 @@ export const launch_settings = async (ctx: any, id: string = '') => {
             : [
                   [{ text: '===== LAUNCH SETTINGS =====', callback_data: '#' }],
                   [
-                      { text: `${launch.autoLP ? '🟢' : '🔴'} Auto LP`, callback_data: `autoLP_${launch.id}` },
-                      { text: `${launch.instantLaunch ? '🟢' : '🔴'} Instant Launch`, callback_data: `instantLaunch_${launch.id}` }
+                      { text: `${launch.autoLP ? '🟢' : '🔴'} Auto LP`, callback_data: `autoLP_` },
+                      { text: `${launch.instantLaunch ? '🟢' : '🔴'} Instant Launch`, callback_data: `instantLaunch_` }
                   ],
                   [{ text: '======', callback_data: '#' }],
                   [
