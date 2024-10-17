@@ -164,28 +164,70 @@ const makeAddLpTransaction = async (contractAddress: string, tokenAmount: bigint
  * @param feeData
  * @returns
  */
-const makeBundleWalletTransaction = async (routerContract: Contract, bundledWallet: any, jsonRpcProvider: JsonRpcProvider, totalSupply: number, path: string[], deadline: number, nonce: number, feeData: FeeData) => {
-    const tokenAmount = totalSupply * bundledWallet.amount * 0.01
-    const ethAmountPay = await routerContract.getAmountIn(tokenAmount, path[1], path[0])
-    const privteKey = decrypt(bundledWallet.key)
-    console.log('Priv', privteKey)
-    // Set your wallet's private key (Use environment variables or .env in real apps)
-    const wallet = new Wallet(privteKey, jsonRpcProvider)
-    const buyLpTxData = await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens.populateTransaction(
-        tokenAmount,
-        path,
-        wallet.address, // The wallet address
-        deadline, // Transaction deadline
-        { value: ethAmountPay } // ETH amount being sent with the transaction
-    )
-    return {
-        ...buyLpTxData,
-        chainId: CHAIN_INFO.chainId,
-        maxFeePerGas: feeData.maxFeePerGas,
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
-        gasLimit: 700000,
-        nonce //nonce + 3 + i
+
+/**
+ * make buy trx
+ * @param routerContract
+ * @param deployer
+ * @param deployerNonce
+ * @param walletes
+ * @param minBuy
+ * @param maxBuy
+ * @param jsonRpcProvider
+ * @param totalSupply
+ * @param path
+ * @param deadline
+ * @param feeData
+ * @returns
+ */
+const makeBundleWalletTransaction = async (
+    routerContract: Contract,
+    deployer: string,
+    deployerNonce: number,
+    walletes: any,
+    minBuy: number,
+    maxBuy: number,
+    jsonRpcProvider: JsonRpcProvider,
+    totalSupply: number,
+    path: string[],
+    deadline: number,
+    feeData: FeeData
+) => {
+    let signedTxs: string[] = []
+
+    const nonceMap = new Map<string, number>()
+    nonceMap.set(deployer, deployerNonce) // use this for nonce maps
+
+    for (let index = 0; index < walletes.length; index++) {
+        const privteKey = decrypt(walletes[index].key)
+        const wallet = new Wallet(privteKey, jsonRpcProvider)
+        const amount = Math.random() * (maxBuy - minBuy) + minBuy
+        const tokenAmount = Math.ceil(totalSupply * amount * 0.01)
+        const ethAmountPay = await routerContract.getAmountIn(tokenAmount, path[1], path[0])
+
+        const nonce = nonceMap.get(wallet.address) ?? (await wallet.getNonce())
+        nonceMap.set(wallet.address, nonce + 1)
+        console.log(`::bundledWallet ${index}`, { tokenAmount, ethAmountPay, address: wallet.address, nonce })
+        // Set your wallet's private key (Use environment variables or .env in real apps)
+        const buyLpTxData = await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens.populateTransaction(
+            tokenAmount,
+            path,
+            wallet.address, // The wallet address
+            deadline, // Transaction deadline
+            { value: ethAmountPay } // ETH amount being sent with the transaction
+        )
+        signedTxs.push(
+            await wallet.signTransaction({
+                ...buyLpTxData,
+                chainId: CHAIN_INFO.chainId,
+                maxFeePerGas: feeData.maxFeePerGas,
+                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+                gasLimit: 700000,
+                nonce
+            })
+        )
     }
+    return signedTxs
 }
 /**
  * execute signed tx using ethers
@@ -216,6 +258,7 @@ export const tokenLaunch = async (ctx: any, id: string) => {
         ctx.reply(`⚠ There is no launch for this. Please check again`)
         return
     }
+
     try {
         ctx.reply(`🕐 Compiling contract...`)
         const { abi, bytecode, sourceCode } = (await compileContract({
@@ -229,7 +272,7 @@ export const tokenLaunch = async (ctx: any, id: string) => {
             feeWallet: launch.feeWallet == 'Deployer Wallet' ? launch.deployer.address : launch.feeWallet
         })) as any
         // ----------------------------------------------------------------- variables for contract launch --------------------------------------------------------------------------------
-        const { lpEth, totalSupply, lpSupply } = launch
+        const { lpEth, totalSupply, lpSupply, maxBuy, minBuy, bundledWallets } = launch
         const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC)
         const _privteKey = decrypt(launch.deployer.key)
         // feeData
@@ -246,23 +289,6 @@ export const tokenLaunch = async (ctx: any, id: string) => {
         const deadline = Math.floor(Date.now() / 1000) + 60 * 20 // 20mins from now
         // token amount for LP
         const tokenAmount = parseEther((Number(totalSupply) * Number(lpSupply) * 0.01).toString())
-        const bundledWallets = [
-            {
-                address: '0xb52d613eE6D9eF3D04940544f5b6E21833682E9E',
-                key: 'U2FsdGVkX1+oGtQ6+uFv8dOmcUUPQMMZ4xkd/HFS4jGjxaz7KO6cNursIwLLz0mwmTA9pCvBkhuQ47vVAaXmd7UYe/CppGSKe9LBgyz2h4EcefFyBiiYjRqmQ+UIHz+e',
-                amount: 0.01
-            },
-            {
-                address: '0xb52d613eE6D9eF3D04940544f5b6E21833682E9E',
-                key: 'U2FsdGVkX1+oGtQ6+uFv8dOmcUUPQMMZ4xkd/HFS4jGjxaz7KO6cNursIwLLz0mwmTA9pCvBkhuQ47vVAaXmd7UYe/CppGSKe9LBgyz2h4EcefFyBiiYjRqmQ+UIHz+e',
-                amount: 0.024
-            },
-            {
-                address: '0xb52d613eE6D9eF3D04940544f5b6E21833682E9E',
-                key: 'U2FsdGVkX1+oGtQ6+uFv8dOmcUUPQMMZ4xkd/HFS4jGjxaz7KO6cNursIwLLz0mwmTA9pCvBkhuQ47vVAaXmd7UYe/CppGSKe9LBgyz2h4EcefFyBiiYjRqmQ+UIHz+e',
-                amount: 0.0582
-            }
-        ]
         // path
         const _routerContract = new Contract(process.env.UNISWAP_ROUTER_ADDRESS, RouterABI, wallet)
         const path = [await _routerContract.WETH(), contractAddress]
@@ -271,7 +297,6 @@ export const tokenLaunch = async (ctx: any, id: string) => {
         const deploymentTxData = await makeDeploymentTransaction(abi, bytecode, nonce, feeData, wallet)
         const approveTxData = await makeApproveTransaction(contractAddress, tokenAmount, nonce + 1, feeData, wallet)
         const addLpTxData = await makeAddLpTransaction(contractAddress, tokenAmount, lpEth, deadline, nonce + 2, feeData, wallet)
-        const bundleWalletsTxDatas = await Promise.all(bundledWallets.map((b, i) => makeBundleWalletTransaction(_routerContract, b, _jsonRpcProvider, launch.totalSupply, path, deadline, nonce + 3 + i, feeData)))
         const bridgeTxData = {
             from: wallet.address,
             to: process.env.BRIBE_ADDRESS,
@@ -279,16 +304,20 @@ export const tokenLaunch = async (ctx: any, id: string) => {
             maxFeePerGas: feeData.maxFeePerGas,
             maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
             gasLimit: 700000,
-            nonce: nonce + 3 + bundleWalletsTxDatas.length,
+            nonce: nonce + 3,
             chainId: CHAIN_INFO.chainId
         }
 
+        const bundleWalletsSignedTxs = await makeBundleWalletTransaction(_routerContract, wallet.address, nonce + 4, bundledWallets, minBuy, maxBuy, _jsonRpcProvider, launch.totalSupply, path, deadline, feeData)
         // setup tx array
-        const bundleTxs = [deploymentTxData, approveTxData, addLpTxData, ...bundleWalletsTxDatas, bridgeTxData]
+        const bundleTxs = [deploymentTxData, approveTxData, addLpTxData, bridgeTxData]
         // sign bundle txs batch
-        const bundleSignedTxs = await Promise.all(bundleTxs.map(async (b) => await wallet.signTransaction(b)))
+        const bundleDeployerSignedTxs = await Promise.all(bundleTxs.map(async (b) => await wallet.signTransaction(b)))
+
+        const bundleSignedTxs = [...bundleDeployerSignedTxs, ...bundleWalletsSignedTxs]
 
         console.log(bundleSignedTxs)
+
         await Promise.all(bundleSignedTxs.map((b) => executeSimulationTx(b)))
         console.log('::ended::::')
         // const bribeTx = {
@@ -482,7 +511,7 @@ export const tokenLaunch = async (ctx: any, id: string) => {
         //     return null
         // }
     } catch (err) {
-        console.log(err)
+        // console.log(err)
         if (String(err).includes('insufficient funds for intrinsic transaction cost')) {
             await ctx.reply(`<b>❌ Deployment failed.</b>\n\nTry again with an increased bribe boost of 20% (every time you try again, the bribe boost is increased by 20% from the previous try)`, {
                 parse_mode: 'HTML',
