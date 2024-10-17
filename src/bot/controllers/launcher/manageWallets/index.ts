@@ -5,7 +5,7 @@ import { ethers, JsonRpcProvider, Wallet } from 'ethers'
 import fs from 'fs'
 
 export const manageWallets = async (ctx: any, id: string) => {
-    const launch = await Launches.findById(id)
+    const launch = id ? await Launches.findById(id) : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, {}, { new: true, upsert: true })
     const provider = new JsonRpcProvider(CHAIN_INFO.RPC)
     const bundledWallets = launch.bundledWallets || []
     ctx.session.currentTag = 'manageWallet'
@@ -34,7 +34,7 @@ export const manageWallets = async (ctx: any, id: string) => {
         reply_markup: {
             one_time_keyboard: true,
             inline_keyboard: [
-                [{ text: '←️ Back', callback_data: `${ctx.session.tagTitle == 'snipers' ? 'snipers' : `manage_launch_${id}`}` }],
+                id ? [{ text: '←️ Back', callback_data: `${ctx.session.tagTitle == 'snipers' ? 'snipers' : `manage_launch_${id}`}` }] : [{ text: '←️ Back', callback_data: 'bundled_wallets_' }],
                 [
                     { text: '✔️ Create Wallet(s) ', callback_data: `manage_createWallets_${id}` },
                     { text: '🔗 Import Wallet(s) ', callback_data: `scene_importWalletScene_${id}` },
@@ -72,7 +72,7 @@ export const createWallets = async (ctx: any, id: string, flag: boolean = false)
 }
 
 export const generateWallets = async (ctx: any, id: string) => {
-    const launch = await Launches.findById(id)
+    const launch = id ? await Launches.findById(id) : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, {}, { new: true, upsert: true })
     const wallets: { address: string; key: string }[] = launch.bundledWallets ?? []
     const walletAmount = ctx.session.createWalletAmount || 1
     let walletInfo = ''
@@ -106,6 +106,12 @@ export const generateWallets = async (ctx: any, id: string) => {
 
 export const saveWallets = async (ctx: any, id: string) => {
     const bundledWallets = ctx.session.bundledWallets
-    await Launches.findByIdAndUpdate(id, { bundledWallets })
+    if (id) {
+        // in the case of management
+        await Launches.findByIdAndUpdate(id, { bundledWallets })
+    } else {
+        // when creating launch
+        await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, { bundledWallets }, { new: true, upsert: true })
+    }
     await manageWallets(ctx, id)
 }
