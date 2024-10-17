@@ -190,7 +190,7 @@ export const predictContractAddress = async (ctx: any, id: string) => {
     try {
         const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC)
         // const _privteKey = decrypt(launch.deployer.key);
-        const _privteKey = launch.deployer.key
+        const _privteKey = decrypt(launch.deployer.key)
         const wallet = new Wallet(_privteKey, _jsonRpcProvider)
 
         // Get the nonce

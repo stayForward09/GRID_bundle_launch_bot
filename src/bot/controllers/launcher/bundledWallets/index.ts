@@ -16,7 +16,7 @@ export const bundled_wallets = async (ctx: any, id: string = '') => {
         reply_markup: {
             inline_keyboard: [
                 [{ text: '===== BUNDLED WALLETS =====', callback_data: '#' }],
-                [{ text: `💼 Bundled Wallets [${bundledWallets.length}]`, callback_data: 'manage_wallets_' }],
+                [{ text: `💼 Bundled Wallets [${bundledWallets.length}]`, callback_data: `manage_wallets_${id}` }],
                 [
                     { text: `🔼 Max Buy: ${maxBuy}%`, callback_data: `scene_maxBuyEditorScene_${id}` },
                     { text: `🔽 Min Buy: ${minBuy}%`, callback_data: `scene_minBuyEditorScene_${id}` }
