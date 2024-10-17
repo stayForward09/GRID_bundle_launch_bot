@@ -34,7 +34,7 @@ export const manageWallets = async (ctx: any, id: string) => {
         reply_markup: {
             one_time_keyboard: true,
             inline_keyboard: [
-                [{ text: '⬅️ Back', callback_data: `${ctx.session.tagTitle == 'snipers' ? 'snipers' : `manage_launch_${id}`}` }],
+                [{ text: '←️ Back', callback_data: `${ctx.session.tagTitle == 'snipers' ? 'snipers' : `manage_launch_${id}`}` }],
                 [
                     { text: '✔️ Create Wallet(s) ', callback_data: `manage_createWallets_${id}` },
                     { text: '🔗 Import Wallet(s) ', callback_data: `scene_importWalletScene_${id}` },

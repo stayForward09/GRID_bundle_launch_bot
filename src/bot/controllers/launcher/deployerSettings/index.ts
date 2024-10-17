@@ -21,8 +21,8 @@ export const deployer_settings = async (ctx: any, id: string = '') => {
                 ],
                 [{ text: '======', callback_data: '#' }],
                 [
-                    { text: '⬅ Back', callback_data: `social_settings_${id}` },
-                    { text: '➡ Next', callback_data: `bundled_wallets_${id}` }
+                    { text: '← Back', callback_data: `social_settings_${id}` },
+                    { text: '→ Next', callback_data: `bundled_wallets_${id}` }
                 ],
                 id.length > 1
                     ? [

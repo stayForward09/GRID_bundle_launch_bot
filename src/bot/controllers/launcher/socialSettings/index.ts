@@ -31,8 +31,8 @@ export const social_settings = async (ctx: any, id: string = '') => {
                 ],
                 [{ text: '======', callback_data: '#' }],
                 [
-                    { text: '⬅ Back', callback_data: `fee_settings_${id}` },
-                    { text: '➡ Next ', callback_data: `deployer_settings_${id}` }
+                    { text: '← Back', callback_data: `fee_settings_${id}` },
+                    { text: '→ Next ', callback_data: `deployer_settings_${id}` }
                 ],
                 id.length > 1
                     ? [

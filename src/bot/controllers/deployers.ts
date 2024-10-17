@@ -1,4 +1,4 @@
-import Launches from "@/models/Launch"
+import Launches from '@/models/Launch'
 
 /**
  * tokens menu
@@ -26,7 +26,7 @@ export const menu = async (ctx: any) => {
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {
-            inline_keyboard: [...tokens, [{ text: '⬅ back', callback_data: 'start' }]],
+            inline_keyboard: [...tokens, [{ text: '← back', callback_data: 'start' }]],
             resize_keyboard: true
         }
     })

@@ -44,7 +44,7 @@ export const launch_settings = async (ctx: any, id: string = '') => {
                       { text: `${launch.instantLaunch ? '🟢' : '🔴'} Instant Launch`, callback_data: `instantLaunch_${launch.id}` }
                   ],
                   [{ text: '======', callback_data: '#' }],
-                  [{ text: '➡ Next ', callback_data: `launch_variables_${launch.id}` }],
+                  [{ text: '→ Next ', callback_data: `launch_variables_${launch.id}` }],
                   [
                       { text: '✖ Cancel', callback_data: `manage_launch_${launch.id}` },
                       { text: '✔️ Save ', callback_data: `manage_launch_${launch.id}` }
@@ -59,7 +59,7 @@ export const launch_settings = async (ctx: any, id: string = '') => {
                   [{ text: '======', callback_data: '#' }],
                   [
                       { text: '✖ Cancel', callback_data: 'create_launch' },
-                      { text: '➡ Next ', callback_data: 'launch_variables_' }
+                      { text: '→ Next ', callback_data: 'launch_variables_' }
                   ]
               ]
 

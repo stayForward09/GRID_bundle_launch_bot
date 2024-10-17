@@ -24,7 +24,7 @@ export const manageDeployer = async (ctx: any, id: string) => {
         reply_markup: {
             one_time_keyboard: true,
             inline_keyboard: [
-                [{ text: '⬅️ Back', callback_data: `${ctx.session.tagTitle == 'deployers' ? 'deployers' : `manage_launch_${id}`}` }],
+                [{ text: '←️ Back', callback_data: `${ctx.session.tagTitle == 'deployers' ? 'deployers' : `manage_launch_${id}`}` }],
                 [
                     { text: '📤 Send ETH', callback_data: `send_eth_${id}` },
                     { text: '📐 Estimate Deployment Cost ', callback_data: `estimate_DeploymentCost_${id}` }
@@ -143,12 +143,12 @@ export const estimateDeploymentCost = async (ctx: any, id: string) => {
         })) as any
         console.log(sourceCode)
         console.log('succeed complied')
-        const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC);
+        const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC)
         // const _privteKey = decrypt(launch.deployer.key);
-        const _privteKey = launch.deployer.key;
+        const _privteKey = launch.deployer.key
         // Set your wallet's private key (Use environment variables or .env in real apps)
-        const wallet = new Wallet(_privteKey, _jsonRpcProvider);
-        console.log({_privteKey, wallet})
+        const wallet = new Wallet(_privteKey, _jsonRpcProvider)
+        console.log({ _privteKey, wallet })
         // Create a contract factory
         const contractFactory = new ContractFactory(abi, bytecode, wallet)
         // Get current gas price

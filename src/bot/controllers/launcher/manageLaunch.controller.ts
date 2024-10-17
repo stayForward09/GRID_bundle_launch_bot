@@ -20,7 +20,7 @@ export const menu = async (ctx: any) => {
     ctx.reply(text, {
         parse_mode: 'HTML',
         reply_markup: {
-            inline_keyboard: [...tokens, [{ text: '⬅ back', callback_data: 'launcher' }]],
+            inline_keyboard: [...tokens, [{ text: '← back', callback_data: 'launcher' }]],
             resize_keyboard: true
         }
     })
@@ -52,7 +52,7 @@ export const manageLaunchDetails = async (ctx: any, id: string) => {
                     { text: '📦 Manage Wallets', callback_data: `manage_wallets_${launch.id}` },
                     { text: '👑 Manage Deployer', callback_data: `manage_deployer_${launch.id}` }
                 ],
-                [{ text: '⬅️ Back', callback_data: 'manage_launch' }]
+                [{ text: '←️ Back', callback_data: 'manage_launch' }]
             ],
             // eslint-disable-next-line prettier/prettier
             resize_keyboard: true

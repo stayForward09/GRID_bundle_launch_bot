@@ -31,8 +31,8 @@ export const launch_variables = async (ctx: any, id: string = '') => {
                   [{ text: `${blacklistCapability ? '🟢' : '🔴'} Blacklist Capability`, callback_data: `blacklistCapability_${id}` }],
                   [{ text: '======', callback_data: '#' }],
                   [
-                      { text: '⬅ Back', callback_data: `edit_launch_${id}` },
-                      { text: '➡ Next ', callback_data: `token_distribution_${id}` }
+                      { text: '← Back', callback_data: `edit_launch_${id}` },
+                      { text: '→ Next ', callback_data: `token_distribution_${id}` }
                   ],
                   [
                       { text: '✖ Cancel', callback_data: `manage_launch_${id}` },
@@ -53,8 +53,8 @@ export const launch_variables = async (ctx: any, id: string = '') => {
                   [{ text: `${blacklistCapability ? '🟢' : '🔴'} Blacklist Capability`, callback_data: 'blacklistCapability_' }],
                   [{ text: '======', callback_data: '#' }],
                   [
-                      { text: '⬅ Back', callback_data: 'setup_wizard' },
-                      { text: '➡ Next ', callback_data: 'token_distribution_' }
+                      { text: '← Back', callback_data: 'setup_wizard' },
+                      { text: '→ Next ', callback_data: 'token_distribution_' }
                   ]
               ]
     ctx.reply(text, {

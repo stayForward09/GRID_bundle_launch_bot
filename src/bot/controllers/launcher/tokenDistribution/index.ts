@@ -30,8 +30,8 @@ export const token_distribution = async (ctx: any, id: string = '') => {
                 [{ text: `💳 Contract Funds ${Intl.NumberFormat().format(totalSupply * contractFunds * 0.01)}`, callback_data: `scene_tokenContractFundsEditorScene_${id}` }],
                 [{ text: '======', callback_data: '#' }],
                 [
-                    { text: '⬅ Back', callback_data: `launch_variables_${id}` },
-                    { text: '➡ Next ', callback_data: `fee_settings_${id}` }
+                    { text: '← Back', callback_data: `launch_variables_${id}` },
+                    { text: '→ Next ', callback_data: `fee_settings_${id}` }
                 ],
                 id.length > 1
                     ? [

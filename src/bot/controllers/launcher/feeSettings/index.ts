@@ -28,8 +28,8 @@ export const fee_settings = async (ctx: any, id: string = '') => {
                 buyFee > 0 || sellFee > 0 ? [{ text: `⚖ Swap Threshold ${swapThreshold}%`, callback_data: `scene_tokenSwapThresholdEditorScene_${id}` }] : [],
                 [{ text: '======', callback_data: '#' }],
                 [
-                    { text: '⬅ Back', callback_data: `token_distribution_${id}` },
-                    { text: '➡ Next ', callback_data: `social_settings_${id}` }
+                    { text: '← Back', callback_data: `token_distribution_${id}` },
+                    { text: '→ Next ', callback_data: `social_settings_${id}` }
                 ],
                 id.length > 1
                     ? [

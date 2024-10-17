@@ -1,7 +1,7 @@
 import Launches from '@/models/Launch'
 
 export const bundled_wallets = async (ctx: any, id: string = '') => {
-    const { minBuy, maxBuy } = id.length > 1 ? await Launches.findById(id) : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, {}, { new: true, upsert: true })
+    const { minBuy, maxBuy, bundledWallets } = id.length > 1 ? await Launches.findById(id) : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, {}, { new: true, upsert: true })
 
     const text =
         `<b>Bundled Wallets</b>\n` +
@@ -16,15 +16,18 @@ export const bundled_wallets = async (ctx: any, id: string = '') => {
         reply_markup: {
             inline_keyboard: [
                 [{ text: '===== BUNDLED WALLETS =====', callback_data: '#' }],
+                [{ text: `💼 Bundled Wallets [${bundledWallets.length}]`, callback_data: '#' }],
                 [
-                    { text: `🔽 Min Buy: ${minBuy}%`, callback_data: `scene_minBuyEditorScene_${id}` },
-                    { text: `🔼 Max Buy: ${maxBuy}%`, callback_data: `scene_maxBuyEditorScene_${id}` }
+                    { text: `🔼 Max Buy: ${maxBuy}%`, callback_data: `scene_maxBuyEditorScene_${id}` },
+                    { text: `🔽 Min Buy: ${minBuy}%`, callback_data: `scene_minBuyEditorScene_${id}` }
                 ],
                 [{ text: '======', callback_data: '#' }],
-                [
-                    { text: '⬅ Back', callback_data: `deployer_settings_${id}` },
-                    { text: '✔ Create', callback_data: `create_launch_confirm_${id}` }
-                ],
+                id.length > 1
+                    ? [{ text: '← Back', callback_data: `deployer_settings_${id}` }]
+                    : [
+                          { text: '← Back', callback_data: `deployer_settings_${id}` },
+                          { text: '✔ Create', callback_data: `create_launch_confirm_${id}` }
+                      ],
                 id.length > 1
                     ? [
                           { text: '✖ Cancel', callback_data: `manage_launch_${id}` },

@@ -24,7 +24,7 @@ export const menu = async (ctx: any) => {
                     { text: '⚖ Manage Launch', callback_data: 'manage_launch' }
                 ],
                 [{ text: '🚀 Launch Token', callback_data: 'launch_token' }],
-                [{ text: '⬅ back', callback_data: 'start' }]
+                [{ text: '← back', callback_data: 'start' }]
             ],
             // eslint-disable-next-line prettier/prettier
             resize_keyboard: true

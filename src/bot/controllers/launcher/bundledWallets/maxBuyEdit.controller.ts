@@ -54,7 +54,7 @@ export const textHandler = async (ctx: any) => {
         })
     } else {
         id.length > 1 ? await Launches.findOneAndUpdate({ _id: id }, { maxBuy: _value }, { new: true }) : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, { maxBuy: _value }, { new: true, upsert: true })
+        await ctx.scene.leave()
         bundled_wallets(ctx, id)
     }
-    await ctx.scene.leave()
 }
