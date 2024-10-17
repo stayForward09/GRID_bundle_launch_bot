@@ -40,6 +40,7 @@ export const menu = async (ctx: any) => {
  * @param ctx
  */
 export const handleSetupWizard = async (ctx: any, type: string, id: string = '') => {
+    console.log(type, id)
     const launch = id.length > 1 ? await Launches.findById(id) : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, {}, { new: true, upsert: true })
     if (type === 'instantLaunch') {
         if (!launch.instantLaunch) {

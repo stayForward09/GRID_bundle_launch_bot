@@ -48,6 +48,8 @@ export const callbackQuery = async (ctx: any) => {
     if (selectedOption == 'setup_wizard') {
         await Launches.deleteMany({ userId: ctx.chat.id, enabled: false })
         launch_settings(ctx)
+    } else if (selectedOption.startsWith('instantLaunch_') || selectedOption.startsWith('autoLP_') || selectedOption.startsWith('blacklistCapability_')) {
+        handleSetupWizard(ctx, selectedOption.split('_')[0], selectedOption.split('_')[1])
     } else if (selectedOption.startsWith('scene_')) {
         const [_, sceneName, id] = selectedOption.split('_')
         ctx.scene.enter(sceneName, { id: id })
