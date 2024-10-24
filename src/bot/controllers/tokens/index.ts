@@ -1,5 +1,5 @@
 import { Markup } from 'telegraf'
-import { CHAIN_INFO } from '@/config/constant'
+import { CHAINS, CHAIN_ID } from '@/config/constant'
 import { verifyContract } from '@/share/utils'
 import Tokens from '@/models/Tokens'
 
@@ -109,23 +109,24 @@ export const generalSettings = async (ctx: any, id: string) => {
  * @param id
  */
 export const contractVerification = async (ctx: any, id: string) => {
+    const CHAIN = CHAINS[CHAIN_ID]
     const _token = await Tokens.findById(id)
     if (!_token) {
         ctx.reply('⚠ There is no token for this id')
     } else if (_token.verified) {
-        ctx.reply(`Contract already verified on <a href='${CHAIN_INFO.explorer}/address/${_token.address}'>EtherscanOrg</a>`)
+        ctx.reply(`Contract already verified on <a href='${CHAIN.explorer}/address/${_token.address}'>EtherscanOrg</a>`)
     } else {
         ctx.reply('🕐 Verifying Contract...')
         const symbol = _token.symbol.replace(/\s/g, '')
         const name = _token.name
-
-        const { status, message } = await verifyContract(_token.address, _token.sourceCode, symbol)
+        const chainId = CHAIN_ID
+        const { status, message } = await verifyContract(_token.address, _token.sourceCode, symbol, chainId)
 
         if (status === 'success') {
             ctx.reply(`🌺 <code>${_token.symbol}</code> has been verified successfully on Etherscan\nAddress: <code>${_token.address}</code>`, {
                 parse_mode: 'HTML',
                 reply_markup: {
-                    inline_keyboard: [[Markup.button.url(`👁 View Here`, `${CHAIN_INFO.explorer}/address/${_token.address}`)], [{ text: '👈 Back', callback_data: `manage_token_${id}` }]],
+                    inline_keyboard: [[Markup.button.url(`👁 View Here`, `${CHAIN.explorer}/address/${_token.address}`)], [{ text: '👈 Back', callback_data: `manage_token_${id}` }]],
                     resize_keyboard: true
                 }
             })

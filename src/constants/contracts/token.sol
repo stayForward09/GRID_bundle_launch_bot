@@ -266,9 +266,9 @@ contract CONTRACT_SYMBOL is ERC20, Ownable {
     using SafeMath for uint256;
 
     // IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24); // Base Mainnet
-    IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x1689E7B1F10000AE47eBfE339a4f69dECd19F602); // Base Sepolia
+    // IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x1689E7B1F10000AE47eBfE339a4f69dECd19F602); // Base Sepolia
     // IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D); // Mainnet 
-    // IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24); // BSC Mainnet 
+    IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24); // BSC Mainnet 
 
 
     address public uniPair;

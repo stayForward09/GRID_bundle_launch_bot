@@ -3,6 +3,9 @@ import { Schema, Model, model } from 'mongoose'
 export interface IToken extends Document {
     instantLaunch: boolean
     autoLP: boolean
+    // process
+    lpAdded: boolean
+    swapEnabled: boolean
 
     name: string
     symbol: string
@@ -58,6 +61,15 @@ const TokenSchema: Schema = new Schema({
         default: false
     },
     autoLP: {
+        type: Boolean,
+        default: false
+    },
+    /////// process
+    lpAdded: {
+        type: Boolean,
+        default: false
+    },
+    swapEnabled: {
         type: Boolean,
         default: false
     },

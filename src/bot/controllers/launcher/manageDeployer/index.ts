@@ -1,12 +1,13 @@
-import { CHAIN_INFO } from '@/config/constant'
+import { CHAIN_ID, CHAINS } from '@/config/constant'
 import Launches from '@/models/Launch'
 import { compileContract } from '@/share/utils'
 import { ContractFactory, ethers, JsonRpcProvider, Wallet } from 'ethers'
 import { decrypt } from '@/share/utils'
 
 export const manageDeployer = async (ctx: any, id: string) => {
+    const CHAIN = CHAINS[CHAIN_ID]
     const launch = await Launches.findById(id)
-    const provider = new JsonRpcProvider(CHAIN_INFO.RPC)
+    const provider = new JsonRpcProvider(CHAIN.RPC)
     const deployerAddress = launch.deployer?.address || ''
     // Get the balance in wei
     const balanceWei = await provider.getBalance(deployerAddress)
@@ -38,8 +39,9 @@ export const manageDeployer = async (ctx: any, id: string) => {
 }
 
 export const sendEth = async (ctx: any, id: string) => {
+    const CHAIN = CHAINS[CHAIN_ID]
     const launch = await Launches.findById(id)
-    const provider = new JsonRpcProvider(CHAIN_INFO.RPC)
+    const provider = new JsonRpcProvider(CHAIN.RPC)
     const deployerAddress = launch.deployer?.address || ''
     // Get the balance in wei
     const balanceWei = await provider.getBalance(deployerAddress)
@@ -50,7 +52,7 @@ export const sendEth = async (ctx: any, id: string) => {
     const amount = ctx.session?.ethReceiverAmount
     console.log('receiverAddress:amount', receiverAddress, amount)
 
-    const text = `*Deployer Send*\n` + `Use this menu to send ETH from your deployer\\. \n\n` + `♠ [*deployer*](${CHAIN_INFO.explorer}\\/address\\/${deployerAddress}) ♠\n` + `\`${deployerAddress}\`\n` + `Balance: \`${balanceEth} ETH \`\n`
+    const text = `*Deployer Send*\n` + `Use this menu to send ETH from your deployer\\. \n\n` + `♠ [*deployer*](${CHAIN.explorer}\\/address\\/${deployerAddress}) ♠\n` + `\`${deployerAddress}\`\n` + `Balance: \`${balanceEth} ETH \`\n`
 
     ctx.replyWithMarkdownV2(text, {
         reply_markup: {
@@ -74,8 +76,9 @@ export const sendEth = async (ctx: any, id: string) => {
 
 export const sendEthConfirm = async (ctx: any, id: string) => {
     const launch = await Launches.findById(id)
+    const CHAIN = CHAINS[CHAIN_ID]
     try {
-        const provider = new JsonRpcProvider(CHAIN_INFO.RPC)
+        const provider = new JsonRpcProvider(CHAIN.RPC)
         const privateKey = launch.deployer?.key
         const deployerAddress = launch.deployer?.address
         const wallet = new Wallet(privateKey, provider)
@@ -125,6 +128,7 @@ export const sendEthConfirm = async (ctx: any, id: string) => {
 }
 
 export const estimateDeploymentCost = async (ctx: any, id: string) => {
+    const CHAIN = CHAINS[CHAIN_ID]
     const launch = await Launches.findById(id)
     if (!launch) {
         ctx.reply(`⚠ There is no launch for this. Please check again`)
@@ -141,9 +145,8 @@ export const estimateDeploymentCost = async (ctx: any, id: string) => {
             instantLaunch: launch.instantLaunch,
             feeWallet: launch.feeWallet == 'Deployer Wallet' ? launch.deployer.address : launch.feeWallet
         })) as any
-        console.log(sourceCode)
-        console.log('succeed complied')
-        const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC)
+        console.log('::succssfully complied')
+        const _jsonRpcProvider = new JsonRpcProvider(CHAIN.RPC)
         // const _privteKey = decrypt(launch.deployer.key);
         const _privteKey = launch.deployer.key
         // Set your wallet's private key (Use environment variables or .env in real apps)
@@ -186,9 +189,10 @@ export const estimateDeploymentCost = async (ctx: any, id: string) => {
 }
 
 export const predictContractAddress = async (ctx: any, id: string) => {
+    const CHAIN = CHAINS[CHAIN_ID]
     const launch = await Launches.findById(id)
     try {
-        const _jsonRpcProvider = new JsonRpcProvider(CHAIN_INFO.RPC)
+        const _jsonRpcProvider = new JsonRpcProvider(CHAIN.RPC)
         // const _privteKey = decrypt(launch.deployer.key);
         const _privteKey = decrypt(launch.deployer.key)
         const wallet = new Wallet(_privteKey, _jsonRpcProvider)

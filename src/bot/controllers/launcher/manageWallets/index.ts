@@ -1,12 +1,13 @@
-import { CHAIN_INFO } from '@/config/constant'
+import { CHAIN_ID, CHAINS } from '@/config/constant'
 import Launches from '@/models/Launch'
 import { encrypt } from '@/share/utils'
 import { ethers, JsonRpcProvider, Wallet } from 'ethers'
 import fs from 'fs'
 
 export const manageWallets = async (ctx: any, id: string) => {
+    const CHAIN = CHAINS[CHAIN_ID]
     const launch = id ? await Launches.findById(id) : await Launches.findOneAndUpdate({ userId: ctx.chat.id, enabled: false }, {}, { new: true, upsert: true })
-    const provider = new JsonRpcProvider(CHAIN_INFO.RPC)
+    const provider = new JsonRpcProvider(CHAIN.RPC)
     const bundledWallets = launch.bundledWallets || []
     ctx.session.currentTag = 'manageWallet'
     ctx.reply(`🕐 Loading wallets...`)
