@@ -1,7 +1,7 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, textHandler } from '../../../controllers/launcher/launchVariables/tokenSymbolEdit.controller'
+import { enterScene, textHandler } from '@/bot/controllers/launcher/launchVariables/tokenSymbolEdit.controller'
 
-export const tokenSymbolEditorScene = new Scenes.BaseScene<Context>('tokenSymbolEditorScene')
+export const tokenSymbolEditScene = new Scenes.BaseScene<Context>('tokenSymbolEditScene')
 
-tokenSymbolEditorScene.enter(enterScene)
-tokenSymbolEditorScene.on('text', textHandler)
+tokenSymbolEditScene.enter(enterScene)
+tokenSymbolEditScene.on('text', textHandler)

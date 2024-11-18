@@ -1,7 +1,7 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, textHandler } from '../../../controllers/launcher/tokenDistribution/tokenLpEthEdit.controller'
+import { enterScene, textHandler } from '@/bot/controllers/launcher/launchTokenomics/tokenLpEthEdit.controller'
 
-export const tokenLpEthEditorScene = new Scenes.BaseScene<Context>('tokenLpEthEditorScene')
+export const tokenLpEthEditScene = new Scenes.BaseScene<Context>('tokenLpEthEditScene')
 
-tokenLpEthEditorScene.enter(enterScene)
-tokenLpEthEditorScene.on('text', textHandler)
+tokenLpEthEditScene.enter(enterScene)
+tokenLpEthEditScene.on('text', textHandler)

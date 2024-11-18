@@ -1,33 +1,36 @@
 import Launches from '@/models/Launch'
+import Tokens from '@/models/Tokens'
+import { replyWithUpdatedMessage } from '@/share/utils'
 
 /**
  * tokens menu
  * @param ctx
  */
 export const menu = async (ctx: any) => {
-    ctx.session.tagTitle = 'snipers'
-    const text = `<b>Snipers</b>\n` + `Select a token to manage snipers for.\n`
+    ctx.session.tagTitle = 'wallets'
+    const text = `<b>Bundled Wallets</b>\n` + `Select a token to manage Bundled Wallets for. This allow you to manage bundled wallets for your token\n`
 
-    const _launches = await Launches.find({ userId: ctx.chat.id, enabled: true })
+    const tokens = await Tokens.find({ userId: ctx.chat.id })
+    let buttons = []
 
-    const tokens = []
-
-    for (let i = 0; i < _launches.length; i += 2) {
+    for (let i = 0; i < tokens.length; i += 2) {
         const element =
-            i + 1 >= _launches.length
-                ? [{ text: _launches[i].name, callback_data: `manage_wallets_${_launches[i].id}` }]
+            i + 1 >= tokens.length
+                ? [{ text: `🪂 ${tokens[i].name}`, callback_data: `manage_wallets_token${tokens[i].id}` }]
                 : [
-                      { text: _launches[i].name, callback_data: `manage_wallets_${_launches[i].id}` },
-                      { text: _launches[i + 1].name, callback_data: `manage_wallets_${_launches[i + 1].id}` }
+                      { text: `🪂 ${tokens[i].name}`, callback_data: `manage_wallets_token${tokens[i].id}` },
+                      { text: `🪂 ${tokens[i + 1].name}`, callback_data: `manage_wallets_token${tokens[i + 1].id}` }
                   ]
-        tokens.push(element)
+        buttons.push(element)
     }
 
-    ctx.reply(text, {
+    const settings = {
         parse_mode: 'HTML',
         reply_markup: {
-            inline_keyboard: [...tokens, [{ text: '← back', callback_data: 'start' }]],
+            inline_keyboard: [tokens.length === 0 ? [{ text: '=== No Tokens You Have Deployed ===', callback_data: '#' }] : [], ...buttons, [{ text: '← back', callback_data: 'start' }]],
             resize_keyboard: true
         }
-    })
+    }
+
+    replyWithUpdatedMessage(ctx, text, settings)
 }

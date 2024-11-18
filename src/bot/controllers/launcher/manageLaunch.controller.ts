@@ -1,4 +1,5 @@
 import Launches from '@/models/Launch'
+import { replyWithUpdatedMessage } from '@/share/utils'
 
 export const menu = async (ctx: any) => {
     const _launches = await Launches.find({ userId: ctx.chat.id, enabled: true })
@@ -17,13 +18,15 @@ export const menu = async (ctx: any) => {
         tokens.push(element)
     }
 
-    ctx.reply(text, {
+    const settings = {
         parse_mode: 'HTML',
         reply_markup: {
-            inline_keyboard: [...tokens, [{ text: '← back', callback_data: 'launcher' }]],
+            inline_keyboard: [_launches.length === 0 ? [{ text: '=== No Launches You Have Created ===', callback_data: '#' }] : [], ...tokens, [{ text: '← back', callback_data: 'launcher' }]],
             resize_keyboard: true
         }
-    })
+    }
+
+    replyWithUpdatedMessage(ctx, text, settings)
 }
 
 export const manageLaunchDetails = async (ctx: any, id: string) => {
@@ -34,18 +37,18 @@ export const manageLaunchDetails = async (ctx: any, id: string) => {
     }
     const text =
         `<b>Launch Features </b>[$${launch.symbol}]\n` +
-        `Edit any existing launches including their Parameters, Snipers, and Deployer, or Delete the launch altogether.\n\n` +
+        `Edit any existing launches including their Parameters, Wallets, and Deployer, or Delete the launch altogether.\n\n` +
         `<b>Edit Launch </b> – Change any details in relation to the contract and your token launch. (Includes LP, Supply, Tax, etc.)\n` +
-        `<b>Delete Launch </b> – Remove the launch from your Launch List. This will erase all previously added Snipers and Parameters.\n` +
-        `<b>Manage Snipers </b> – Add, Remove, and Fund any Snipers that will be used in your Bundled Launch.\n` +
+        `<b>Delete Launch </b> – Remove the launch from your Launch List. This will erase all previously added Wallets and Parameters.\n` +
+        `<b>Manage Wallets </b> – Add, Remove, and Fund any Wallets that will be used in your Bundled Launch.\n` +
         `<b>Manage Deployer </b> – Add, Remove, or Edit your Deployer Address for the current Launch.\n`
 
-    ctx.reply(text, {
+    const settings = {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: '✏️ Edit Launch', callback_data: `edit_launch_${launch.id}` },
+                    { text: '✏️ Edit Launch', callback_data: `launch_settings_${launch.id}` },
                     { text: '❌ Delete Launch ', callback_data: `delete_launch_${launch.id}` }
                 ],
                 [
@@ -60,12 +63,14 @@ export const manageLaunchDetails = async (ctx: any, id: string) => {
         link_preview_options: {
             is_disabled: true
         }
-    })
+    }
+    replyWithUpdatedMessage(ctx, text, settings)
 }
 
 export const deleteLaunch = async (ctx: any, id: string = '') => {
-    const text = `Are you sure you want to delete your launch? \n` + `<b><u>Once deleted it can never be recovered again.</u></b>`
-    ctx.reply(text, {
+    console.log('::delete launch:: ', id)
+    const text = `<b>Are you sure you want to delete your launch?</b>  Once deleted it can never be recovered again.`
+    const settings = {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
@@ -80,5 +85,6 @@ export const deleteLaunch = async (ctx: any, id: string = '') => {
         link_preview_options: {
             is_disabled: true
         }
-    })
+    }
+    replyWithUpdatedMessage(ctx, text, settings)
 }

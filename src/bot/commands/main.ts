@@ -7,7 +7,10 @@ export default (_bot: Telegraf<Context<Update>>) => {
      * @command /start
      * start function
      */
-    _bot.command('start', start)
+    _bot.command('start', (ctx: any) => {
+        ctx.session.mainMsgId = undefined
+        start(ctx)
+    })
     /**
      * @action start
      * start function

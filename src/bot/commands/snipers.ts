@@ -2,13 +2,16 @@ import { menu } from '@/bot/controllers/snipers'
 
 export default (_bot: any) => {
     /**
-     * @command /snipers
-     * snipers menu function
+     * @command /wallets
+     * wallets menu function
      */
-    _bot.command('snipers', menu)
+    _bot.command('wallets', (ctx: any) => {
+        ctx.session.mainMsgId = undefined
+        menu(ctx)
+    })
     /**
-     * @action snipers
-     * snipers menu function
+     * @action wallets
+     * wallets menu function
      */
-    _bot.action('snipers', menu)
+    _bot.action('wallets', menu)
 }

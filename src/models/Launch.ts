@@ -37,6 +37,8 @@ export interface ILanuch extends Document {
     ]
     minBuy: number
     maxBuy: number
+
+    isFilterFeePaid: boolean
 }
 interface ILanuchModel extends Model<ILanuch> {}
 
@@ -85,7 +87,7 @@ const LaunchSchema: Schema = new Schema({
     /////// token distribution
     lpSupply: {
         type: Number,
-        default: 100 //percent
+        default: 30 //percent
     },
     lpEth: {
         type: Number,
@@ -153,6 +155,11 @@ const LaunchSchema: Schema = new Schema({
     },
     // if created, set true
     enabled: {
+        type: Boolean,
+        default: false
+    },
+    //fee paid
+    isFilterFeePaid: {
         type: Boolean,
         default: false
     }

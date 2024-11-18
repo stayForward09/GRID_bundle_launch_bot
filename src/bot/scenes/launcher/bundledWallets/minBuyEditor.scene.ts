@@ -1,7 +1,7 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, textHandler } from '../../../controllers/launcher/bundledWallets/minBuyEdit.controller'
+import { enterScene, textHandler } from '@/bot/controllers/launcher/bundledWallets/minBuyEdit.controller'
 
-export const minBuyEditorScene = new Scenes.BaseScene<Context>('minBuyEditorScene')
+export const minBuyEditScene = new Scenes.BaseScene<Context>('minBuyEditScene')
 
-minBuyEditorScene.enter(enterScene)
-minBuyEditorScene.on('text', textHandler)
+minBuyEditScene.enter(enterScene)
+minBuyEditScene.on('text', textHandler)

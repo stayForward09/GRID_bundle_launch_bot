@@ -1,5 +1,5 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, textHandler } from '../../../controllers/launcher/deployerSettings/tokenDeployerLink.controller'
+import { enterScene, textHandler } from '@/bot/controllers/share/deployers/tokenDeployerLink.controller'
 
 export const tokenDeployerLinkScene = new Scenes.BaseScene<Context>('tokenDeployerLinkScene')
 

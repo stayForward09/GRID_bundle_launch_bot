@@ -1,7 +1,7 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, textHandler } from '../../../controllers/launcher/launchVariables/tokenMaxSwapEdit.controller'
+import { enterScene, textHandler } from '@/bot/controllers/launcher/launchVariables/tokenMaxSwapEdit.controller'
 
-export const tokenMaxSwapEditorScene = new Scenes.BaseScene<Context>('tokenMaxSwapEditorScene')
+export const tokenMaxSwapEditScene = new Scenes.BaseScene<Context>('tokenMaxSwapEditScene')
 
-tokenMaxSwapEditorScene.enter(enterScene)
-tokenMaxSwapEditorScene.on('text', textHandler)
+tokenMaxSwapEditScene.enter(enterScene)
+tokenMaxSwapEditScene.on('text', textHandler)

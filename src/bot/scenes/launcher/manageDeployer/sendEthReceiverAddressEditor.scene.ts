@@ -1,7 +1,7 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, textHandler } from '../../../controllers/launcher/manageDeployer/sendEthReceiverAddressEdit.controller'
+import { enterScene, textHandler } from '@/bot/controllers/launcher/launchDeployers/sendEthReceiverAddressEdit.controller'
 
-export const sendEthReceiverAddressEditorScene = new Scenes.BaseScene<Context>('sendEthReceiverAddressEditorScene')
+export const ethToAddressEditScene = new Scenes.BaseScene<Context>('ethToAddressEditScene')
 
-sendEthReceiverAddressEditorScene.enter(enterScene)
-sendEthReceiverAddressEditorScene.on('text', textHandler)
+ethToAddressEditScene.enter(enterScene)
+ethToAddressEditScene.on('text', textHandler)

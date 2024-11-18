@@ -1,5 +1,5 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, callbackQuery } from '../../../controllers/launcher/deployerSettings/tokenDeployerCreate.controller'
+import { enterScene, callbackQuery } from '@/bot/controllers/share/deployers/tokenDeployerCreate.controller'
 
 export const tokenDeployerCreatorScene = new Scenes.BaseScene<Context>('tokenDeployerCreatorScene')
 

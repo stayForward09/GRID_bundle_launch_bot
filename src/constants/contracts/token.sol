@@ -1,13 +1,8 @@
-/**
- *Submitted for verification at basescan.org on 2024-09-24
- */
 
 // SPDX-License-Identifier: MIT
 
 /*
-    Website: https://davee.org
-    Telegram: https://t.me/theOpenGRIDBot
-    Great Works
+    <WEBSITE><TWITTER><TELEGRAM><CUSTOM>
 */
 
 pragma solidity ^0.8.19;
@@ -265,11 +260,7 @@ interface IUniswapV2Router02 {
 contract CONTRACT_SYMBOL is ERC20, Ownable {
     using SafeMath for uint256;
 
-    // IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24); // Base Mainnet
-    // IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x1689E7B1F10000AE47eBfE339a4f69dECd19F602); // Base Sepolia
-    // IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D); // Mainnet 
-    IUniswapV2Router02 private constant _router = IUniswapV2Router02(0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24); // BSC Mainnet 
-
+    IUniswapV2Router02 private constant _router = IUniswapV2Router02(CONTRACT_UNISWAP_ROUTER);
 
     address public uniPair;
     address public immutable feeRecipientAddress;
@@ -296,9 +287,9 @@ contract CONTRACT_SYMBOL is ERC20, Ownable {
     constructor() payable ERC20('CONTRACT_NAME', 'CONTRACT_SYMBOL') {
         uint256 totalSupply = CONTRACT_TOTAL_SUPPLY * 1e18;
 
-        maxSwapTxSize = totalSupply.mul(1).div(100);
-        maxHoldings = totalSupply.mul(10).div(100);
-        feeThresholdSize = totalSupply.mul(5).div(1000);
+        maxSwapTxSize = totalSupply.mul(CONTRACT_MAX_SWAP).div(100);
+        maxHoldings = totalSupply.mul(CONTRACT_MAX_WALLET).div(100);
+        feeThresholdSize = totalSupply.mul(CCONTRACT_FEE_THRESHOLD).div(100000);
 
         feeRecipientAddress = CONTRACT_FEE_WALLET;
 
@@ -306,11 +297,13 @@ contract CONTRACT_SYMBOL is ERC20, Ownable {
         sellTax = CONTRACT_SELL_FEE;
         lpFeePercent = CONTRACT_LP_FEE;
 
+        uniPair = IUniswapV2Factory(_router.factory()).createPair(address(this), _router.WETH());
         _isExcludedFromLimits[feeRecipientAddress] = true;
         _isExcludedFromLimits[msg.sender] = true;
         _isExcludedFromLimits[tx.origin] = true;
         _isExcludedFromLimits[address(this)] = true;
         _isExcludedFromLimits[address(0xdead)] = true;
+        _isExcludedFromLimits[uniPair] = true;
         CONTRACT_INSTANT_LAUNCH_ENABLED
 
         _mint(tx.origin, totalSupply);
@@ -321,9 +314,8 @@ contract CONTRACT_SYMBOL is ERC20, Ownable {
         require(to != address(0), 'Transfer to the zero address not allowed.');
         require(amount > 0, 'Transfer amount must be greater than zero.');
         require(!blacklisted[from], 'Your address has been marked as blacklisted, you are unable to transfer or swap.');
-
         bool excluded = _isExcludedFromLimits[from] || _isExcludedFromLimits[to];
-        require(uniPair != address(0) || excluded, 'Liquidity pair not yet created.');
+        require(swapEnabled || excluded, "Swap is not enabled!");
 
         bool isSell = to == uniPair;
         bool isBuy = from == uniPair;
@@ -387,7 +379,7 @@ contract CONTRACT_SYMBOL is ERC20, Ownable {
         _taxedSwapTokens = 0;
 
         payable(feeRecipientAddress).transfer(ethFee);
-        payable(0x4c2d1340E44DcFe0f3f8A30fD60b1e0cD14a14Ed).transfer(ethSplitFee);
+        payable(CONTRACT_DAO_ADDRESS).transfer(ethSplitFee);
 
         _approve(address(this), address(_router), tokensForLiquidity);
 
@@ -399,7 +391,7 @@ contract CONTRACT_SYMBOL is ERC20, Ownable {
     }
 
     function enableSwap() external onlyOwner {
-        uniPair = IUniswapV2Factory(_router.factory()).getPair(address(this), _router.WETH());
+        swapEnabled = true;
     }
 
     function updateFeeTokenThreshold(uint256 newThreshold) external {
@@ -410,7 +402,7 @@ contract CONTRACT_SYMBOL is ERC20, Ownable {
     }
 
     function setFees(uint256 newBuyFee, uint256 newSellFee, uint256 newLiquidityFee) external onlyOwner {
-        require(newBuyFee <= 2 && newSellFee <= 3 && newLiquidityFee <= 3, 'Attempting to set fee higher than initial fee.');
+        // require(newBuyFee <= CONTRACT_BUY_FEE && newSellFee <= CONTRACT_SELL_FEE && newLiquidityFee <= CONTRACT_LP_FEE, 'Attempting to set fee higher than initial fee.');
         buyTax = newBuyFee;
         sellTax = newSellFee;
         lpFeePercent = newLiquidityFee;

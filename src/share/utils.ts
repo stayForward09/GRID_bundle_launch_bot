@@ -4,6 +4,13 @@ import path from 'path'
 import solc from 'solc'
 import axios from 'axios'
 import { CHAINS } from '@/config/constant'
+import { start as startMenu } from '@/bot/controllers/main'
+import { menu as deployersMenu } from '@/bot/controllers/deployers'
+import { menu as launcherMenu } from '@/bot/controllers/launcher'
+import { menu as walletsMenu } from '@/bot/controllers/snipers'
+import { menu as tokensMenu } from '@/bot/controllers/tokens'
+import { CHAIN } from '@/types'
+import { Markup } from 'telegraf'
 
 /**
  * delay specific time Promise
@@ -61,7 +68,6 @@ export const decrypt = (cipherText: string, key?: string) => {
  */
 export const verifyContract = async (contractaddress: string, sourceCode: string, contractname: string, chainId: number) => {
     try {
-        console.log(contractaddress, sourceCode, contractname, chainId)
         const CHAIN = CHAINS[chainId]
         console.log('::sending contract code to etherscan to verify...', `${CHAIN.ETHERSCAN_API_URL}/api?module=contract&action=verifysourcecode&apikey=${CHAIN.ETHERSCAN_API_KEY}`)
         const { data } = await axios.post(
@@ -81,7 +87,6 @@ export const verifyContract = async (contractaddress: string, sourceCode: string
                 }
             }
         )
-        console.log(data)
         if (data.status === '0') {
             return {
                 status: 'error',
@@ -103,12 +108,35 @@ export const verifyContract = async (contractaddress: string, sourceCode: string
 }
 
 /**
+ * format provided number
+ * @param value
+ * @returns
+ */
+export const formatNumber = (value: number | string) =>
+    new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 5
+    }).format(Number(value))
+
+/**
+ * format provided number
+ * @param value
+ * @returns
+ */
+export const formatSmallNumber = (value: number | string) =>
+    new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 8
+    }).format(Number(value))
+
+/**
  * compile solidity code using solc, and generate bytecode and abi
  * @param param0
  * @returns
  */
-export const compileContract = ({ name, symbol, totalSupply, sellFee, buyFee, liquidityFee, instantLaunch, feeWallet }) =>
+export const compileContract = ({ chainId, name, symbol, totalSupply, maxSwap, maxWallet, sellFee, buyFee, liquidityFee, swapThreshold, instantLaunch, feeWallet, website, twitter, telegram, custom }) =>
     new Promise(async (resolve, reject) => {
+        const CHAIN = CHAINS[chainId]
         const contractPath = path.resolve(__dirname, '../constants/contracts/token.sol') // Path to your Solidity file
         const source = fs.readFileSync(contractPath, 'utf8') // Read the contract file
         // todo make source code
@@ -119,10 +147,22 @@ export const compileContract = ({ name, symbol, totalSupply, sellFee, buyFee, li
         _sourceCode = _sourceCode.replace(/CONTRACT_SYMBOL/g, _symbol)
         _sourceCode = _sourceCode.replace(/CONTRACT_NAME/g, name)
         _sourceCode = _sourceCode.replace(/CONTRACT_TOTAL_SUPPLY/g, totalSupply)
-        _sourceCode = _sourceCode.replace(/CONTRACT_BUY_FEE/g, buyFee)
-        _sourceCode = _sourceCode.replace(/CONTRACT_SELL_FEE/g, sellFee)
-        _sourceCode = _sourceCode.replace(/CONTRACT_LP_FEE/g, liquidityFee)
-        _sourceCode = _sourceCode.replace('CONTRACT_INSTANT_LAUNCH_ENABLED', instantLaunch ? 'uniPair = IUniswapV2Factory(_router.factory()).createPair(address(this), _router.WETH());' : '')
+        _sourceCode = _sourceCode.replace(/CONTRACT_BUY_FEE/g, buyFee.toFixed())
+        _sourceCode = _sourceCode.replace(/CONTRACT_SELL_FEE/g, sellFee.toFixed())
+        _sourceCode = _sourceCode.replace(/CONTRACT_LP_FEE/g, liquidityFee.toFixed())
+        _sourceCode = _sourceCode.replace(/CONTRACT_MAX_SWAP/g, maxSwap.toFixed())
+        _sourceCode = _sourceCode.replace(/CONTRACT_MAX_WALLET/g, maxWallet.toFixed())
+        _sourceCode = _sourceCode.replace(/CCONTRACT_FEE_THRESHOLD/g, (swapThreshold * 1000).toFixed())
+        _sourceCode = _sourceCode.replace(/CONTRACT_UNISWAP_ROUTER/g, CHAIN.UNISWAP_ROUTER_ADDRESS)
+        _sourceCode = _sourceCode.replace(/CONTRACT_DAO_ADDRESS/g, process.env.DAO_ADDRESS)
+        // set info
+        _sourceCode = _sourceCode.replace('<WEBSITE>', website ? `Website: ${website}` : '')
+        _sourceCode = _sourceCode.replace('<TWITTER>', twitter ? `\n    Twitter: ${twitter}` : '')
+        _sourceCode = _sourceCode.replace('<TELEGRAM>', telegram ? `\n    Telegram: ${telegram}` : '')
+        _sourceCode = _sourceCode.replace('<CUSTOM>', custom ? `\n    ${custom}` : '')
+
+        _sourceCode = _sourceCode.replace('CONTRACT_INSTANT_LAUNCH_ENABLED', instantLaunch ? 'swapEnabled = true;' : '')
+        // _sourceCode = _sourceCode.replace('CONTRACT_INSTANT_LAUNCH_ENABLED', instantLaunch ? 'uniPair = IUniswapV2Factory(_router.factory()).createPair(address(this), _router.WETH());' : '')
         _sourceCode = _sourceCode.replace('CONTRACT_FEE_WALLET', feeWallet)
 
         // Solc input and settings
@@ -159,3 +199,202 @@ export const compileContract = ({ name, symbol, totalSupply, sellFee, buyFee, li
             }
         })
     })
+
+export const localeNumber = (number: number | string) => {
+    return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 18,
+        useGrouping: false // Disable commas
+    }).format(Number(number))
+}
+/**
+ *
+ * @param ctx
+ * @param msgId
+ */
+export const deleteMessage = async (ctx: any, msgId: any) => {
+    if (msgId) {
+        await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch((err: any) => {
+            // blablabla
+        })
+    }
+}
+
+/**
+ * delete old msgs except for main msg
+ * @param ctx
+ * @param msgId
+ */
+export const deleteOldMessages = async (ctx: any) => {
+    try {
+        const oldMsgId = Number(ctx.session.mainMsgId)
+        const msgIds = Array.isArray(ctx.session.msgIds) ? ctx.session.msgIds : []
+        msgIds.filter((id: number) => id !== oldMsgId).map((id: number) => deleteMessage(ctx, id))
+        ctx.session.msgIds = []
+    } catch(err) {
+        //blablabla
+    }
+}
+/**
+ * send updated msg to users
+ * @param ctx
+ * @param text
+ * @param settings
+ */
+export const replyWithUpdatedMessage = async (ctx: any, text: string, settings: any) => {
+    const oldMsgId = Number(ctx.session.mainMsgId)
+    if (!isNaN(oldMsgId)) {
+        deleteOldMessages (ctx)
+        await ctx.telegram
+            .editMessageText(ctx.chat.id, oldMsgId, 0, text, settings)
+            .then(({ message_id }: any) => {
+                ctx.session.mainMsgId = message_id
+            })
+            .catch(async (err: any) => {
+                if (!String(err).includes('Bad Request: message is not modified:')) {
+                    await ctx
+                        .reply(text, settings)
+                        .then(({ message_id }: any) => {
+                            ctx.session.mainMsgId = message_id
+                        })
+                        .catch((err: any) => {
+                            console.log('::start::', err, '::end::')
+                            ctx.reply('⚡ Sorry, we detected sth wrong. Can you start bot again please?')
+                        })
+                }
+            })
+        
+    } else {
+        await ctx
+            .reply(text, settings)
+            .then(({ message_id }: any) => {
+                ctx.session.mainMsgId = message_id
+            })
+            .catch((err: any) => {
+                console.log('::start::', err, '::end::')
+                ctx.reply('⚡ Sorry, we detected sth wrong. Can you start bot again please?')
+            })
+    }
+}
+
+export const saveOldMsgIds = async (ctx: any, msgId: any) => {
+    if (!isNaN(Number(msgId))) {
+        ctx.session.msgIds = Array.isArray(ctx.session.msgIds) ? ctx.session.msgIds : []
+        ctx.session.msgIds.push(msgId)
+    }
+}
+
+export const showMessage = async (ctx: any, msg: string) => {
+    const { message_id } = await ctx.reply(msg)
+    saveOldMsgIds(ctx, message_id)
+}
+
+/**
+ *
+ * @param ctx
+ */
+export const checkExit = async (ctx: any) => {
+    const menus = {
+        '/start': startMenu,
+        '/deployers': deployersMenu,
+        '/tokens': tokensMenu,
+        '/launcher': launcherMenu,
+        '/wallets': walletsMenu
+    }
+
+    const value = ctx.message.text
+    if (value === '/start' || value === '/deployers' || value === '/launcher' || value === '/wallets' || value === '/tokens') {
+        deleteMessage(ctx, ctx.session.message_id)
+        deleteMessage(ctx, ctx.message.message_id)
+        await ctx.scene.leave()
+        menus[value](ctx)
+        return true
+    } else {
+        return false
+    }
+}
+/**
+ *
+ * @param ctx
+ * @param text
+ * @param settings
+ */
+export const replyWarningMessage = async (ctx: any, text: string, settings: any = {}) => {
+    ctx.session.mainMsgId = undefined
+    await replyWithUpdatedMessage(ctx, text, settings)
+}
+/**
+ *
+ * @param ctx
+ * @param text
+ */
+export const showNotification = async (ctx: any, text: string) => {
+    try {
+        await ctx.answerCbQuery(text, { show_alert: true })
+    } catch (err) {
+        //
+    }
+}
+/**
+ * generate random number between two numbers
+ * @param min
+ * @param max
+ * @returns
+ */
+export const getBetweenNumber = (min: number, max: number) => {
+    let number = 0
+    do {
+        number = Math.random()
+    } while (number === 0)
+    return number * (max - min) + min
+}
+/**
+ * make the first letter Upper
+ * @param text
+ * @returns
+ */
+export const capitalizeFirstLetter = (text: string) => {
+    if (text.length > 0) {
+        return text.charAt(0).toUpperCase() + text.slice(1)
+    } else {
+        return ''
+    }
+}
+
+/**
+ * handle contract error exception
+ * @param ctx
+ * @param id
+ * @param err
+ * @param chain
+ * @param address
+ * @param back
+ */
+export const catchContractErrorException = async (ctx: any, err: any, chain: CHAIN, address: string, back: string, msg: string) => {
+    if (err && typeof err === 'object' && 'code' in err) {
+        let hash = `${chain.explorer}/address/${address}`
+        if ('receipt' in err && err?.receipt?.hash) {
+            hash = `${chain.explorer}/tx/${err?.receipt?.hash}`
+        }
+        replyWithUpdatedMessage(
+            ctx,
+            `<b>⚠ ${capitalizeFirstLetter(String(err?.code).toLowerCase())}</b>\n<code>${capitalizeFirstLetter(String(err?.info?.error?.message ?? err?.shortMessage ?? 'Detected an unexpected issue. You can contact to support team'))}.  Please check following details.</code>`,
+            {
+                parse_mode: 'HTML',
+                reply_markup: {
+                    inline_keyboard: [[Markup.button.url(`👁 View On Etherscan`, hash)], [{ text: '← Back', callback_data: back }]],
+                    resize_keyboard: true
+                }
+            }
+        )
+    } else {
+        console.log(`::err in ${msg}`, err, ':end::')
+        replyWithUpdatedMessage(ctx, `⚠ ${msg}, Please ask for support team`, {
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [[{ text: '← Back', callback_data: back }]],
+                resize_keyboard: true
+            }
+        })
+    }
+}

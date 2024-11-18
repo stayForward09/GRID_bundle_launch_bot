@@ -1,4 +1,3 @@
-import dotenv from 'dotenv'
 import startBot from './bot'
 import { connectDB } from './config/db'
 

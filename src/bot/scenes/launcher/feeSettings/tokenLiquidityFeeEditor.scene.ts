@@ -1,7 +1,7 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, textHandler } from '../../../controllers/launcher/feeSettings/tokenContractLiquidityFeeEdit.controller'
+import { enterScene, textHandler } from '@/bot/controllers/launcher/launchFees/tokenContractLiquidityFeeEdit.controller'
 
-export const tokenLiquidityFeeEditorScene = new Scenes.BaseScene<Context>('tokenLiquidityFeeEditorScene')
+export const tokenLiquidityFeeEditScene = new Scenes.BaseScene<Context>('tokenLiquidityFeeEditScene')
 
-tokenLiquidityFeeEditorScene.enter(enterScene)
-tokenLiquidityFeeEditorScene.on('text', textHandler)
+tokenLiquidityFeeEditScene.enter(enterScene)
+tokenLiquidityFeeEditScene.on('text', textHandler)

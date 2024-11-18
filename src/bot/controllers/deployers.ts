@@ -1,33 +1,40 @@
-import Launches from '@/models/Launch'
+import Tokens from '@/models/Tokens'
+import { replyWithUpdatedMessage } from '@/share/utils'
 
 /**
  * tokens menu
  * @param ctx
  */
 export const menu = async (ctx: any) => {
-    ctx.session.tagTitle = 'deployers'
-    const text = `<b>Deployers</b>\n` + `Select a token to manage deployers for.\n`
+    try {
+        ctx.session.tagTitle = 'deployers'
+        const text = `<b>Deployers</b>\n` + `Select a token to manage deployers for. You can mange several settings including ETH balance\n`
 
-    const _launches = await Launches.find({ userId: ctx.chat.id, enabled: true })
+        const tokens = await Tokens.find({ userId: ctx.chat.id })
 
-    const tokens = []
+        const buttons = []
 
-    for (let i = 0; i < _launches.length; i += 2) {
-        const element =
-            i + 1 >= _launches.length
-                ? [{ text: _launches[i].name, callback_data: `manage_deployer_${_launches[i].id}` }]
-                : [
-                      { text: _launches[i].name, callback_data: `manage_deployer_${_launches[i].id}` },
-                      { text: _launches[i + 1].name, callback_data: `manage_deployer_${_launches[i + 1].id}` }
-                  ]
-        tokens.push(element)
-    }
-
-    ctx.reply(text, {
-        parse_mode: 'HTML',
-        reply_markup: {
-            inline_keyboard: [...tokens, [{ text: '← back', callback_data: 'start' }]],
-            resize_keyboard: true
+        for (let i = 0; i < tokens.length; i += 2) {
+            const element =
+                i + 1 >= tokens.length
+                    ? [{ text: tokens[i].name, callback_data: `manage_deployer_token${tokens[i].id}` }]
+                    : [
+                          { text: tokens[i].name, callback_data: `manage_deployer_token${tokens[i].id}` },
+                          { text: tokens[i + 1].name, callback_data: `manage_deployer_token${tokens[i + 1].id}` }
+                      ]
+            buttons.push(element)
         }
-    })
+
+        const settings = {
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [tokens.length === 0 ? [{ text: '=== No Tokens You Have Deployed ===', callback_data: '#' }] : [], ...buttons, [{ text: '← back', callback_data: 'start' }]],
+                resize_keyboard: true
+            }
+        }
+
+        replyWithUpdatedMessage(ctx, text, settings)
+    } catch (err) {
+        console.log(err)
+    }
 }

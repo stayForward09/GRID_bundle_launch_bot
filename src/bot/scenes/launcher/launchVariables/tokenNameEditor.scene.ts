@@ -1,7 +1,7 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, textHandler } from '../../../controllers/launcher/launchVariables/tokenNameEdit.controller'
+import { enterScene, textHandler } from '@/bot/controllers/launcher/launchVariables/tokenNameEdit.controller'
 
-export const tokenNameEditorScene = new Scenes.BaseScene<Context>('tokenNameEditorScene')
+export const tokenNameEditScene = new Scenes.BaseScene<Context>('tokenNameEditScene')
 
-tokenNameEditorScene.enter(enterScene)
-tokenNameEditorScene.on('text', textHandler)
+tokenNameEditScene.enter(enterScene)
+tokenNameEditScene.on('text', textHandler)

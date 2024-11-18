@@ -1,7 +1,7 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, textHandler } from '../../../controllers/launcher/launchVariables/tokenMaxWalletEdit.controller'
+import { enterScene, textHandler } from '@/bot/controllers/launcher/launchVariables/tokenMaxWalletEdit.controller'
 
-export const tokenMaxWalletEditorScene = new Scenes.BaseScene<Context>('tokenMaxWalletEditorScene')
+export const tokenMaxWalletEditScene = new Scenes.BaseScene<Context>('tokenMaxWalletEditScene')
 
-tokenMaxWalletEditorScene.enter(enterScene)
-tokenMaxWalletEditorScene.on('text', textHandler)
+tokenMaxWalletEditScene.enter(enterScene)
+tokenMaxWalletEditScene.on('text', textHandler)

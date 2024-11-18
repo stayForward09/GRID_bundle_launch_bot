@@ -43,9 +43,10 @@ export interface IToken extends Document {
         {
             address: string
             key: string
-            amount: number
         }
     ]
+    minBuy: number
+    maxBuy: number
 }
 interface ITokenModel extends Model<IToken> {}
 
@@ -177,10 +178,17 @@ const TokenSchema: Schema = new Schema({
     bundledWallets: [
         {
             address: String,
-            key: String,
-            amount: Number
+            key: String
         }
-    ]
+    ],
+    minBuy: {
+        type: Number,
+        default: 0 //percent
+    },
+    maxBuy: {
+        type: Number,
+        default: 0 //percent
+    }
 })
 
 const Tokens: ITokenModel = model<IToken, ITokenModel>('tokens', TokenSchema)

@@ -1,6 +1,7 @@
 import Launches from '@/models/Launch'
 import { launch_settings } from './createLaunch.controller'
-import { launch_variables } from '@/bot/controllers/launcher/launchVariables/index'
+import { launchVariablesMenu } from '@/bot/controllers/launcher/launchVariables/index'
+import { replyWithUpdatedMessage } from '@/share/utils'
 
 /**
  * launch menu
@@ -15,7 +16,7 @@ export const menu = async (ctx: any) => {
         `<b>Manage Launch</b> – Set your launch parameters before deployment..\n` +
         `<b>Launch Token</b> – Deploy a new token on the undefined Network.\n`
 
-    ctx.reply(text, {
+    const settings = {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
@@ -32,7 +33,9 @@ export const menu = async (ctx: any) => {
         link_preview_options: {
             is_disabled: true
         }
-    })
+    }
+
+    replyWithUpdatedMessage(ctx, text, settings)
 }
 
 /**
@@ -59,6 +62,6 @@ export const handleSetupWizard = async (ctx: any, type: string, id: string = '')
     } else if (type === 'blacklistCapability') {
         launch.blacklistCapability = !launch.blacklistCapability
         await launch.save()
-        launch_variables(ctx, id)
+        launchVariablesMenu(ctx, id)
     }
 }

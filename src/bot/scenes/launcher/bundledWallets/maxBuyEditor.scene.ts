@@ -1,7 +1,7 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, textHandler } from '../../../controllers/launcher/bundledWallets/maxBuyEdit.controller'
+import { enterScene, textHandler } from '@/bot/controllers/launcher/bundledWallets/maxBuyEdit.controller'
 
-export const maxBuyEditorScene = new Scenes.BaseScene<Context>('maxBuyEditorScene')
+export const maxBuyEditScene = new Scenes.BaseScene<Context>('maxBuyEditScene')
 
-maxBuyEditorScene.enter(enterScene)
-maxBuyEditorScene.on('text', textHandler)
+maxBuyEditScene.enter(enterScene)
+maxBuyEditScene.on('text', textHandler)

@@ -1,7 +1,7 @@
 import { Scenes, Context } from 'telegraf'
-import { enterScene, textHandler } from '../../../controllers/launcher/feeSettings/tokenSwapThresholdEdit.controller'
+import { enterScene, textHandler } from '@/bot/controllers/launcher/launchFees/tokenSwapThresholdEdit.controller'
 
-export const tokenSwapThresholdEditorScene = new Scenes.BaseScene<Context>('tokenSwapThresholdEditorScene')
+export const tokenSwapThresholdEditScene = new Scenes.BaseScene<Context>('tokenSwapThresholdEditScene')
 
-tokenSwapThresholdEditorScene.enter(enterScene)
-tokenSwapThresholdEditorScene.on('text', textHandler)
+tokenSwapThresholdEditScene.enter(enterScene)
+tokenSwapThresholdEditScene.on('text', textHandler)
