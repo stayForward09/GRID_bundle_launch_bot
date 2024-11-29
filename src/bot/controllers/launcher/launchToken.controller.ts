@@ -7,7 +7,7 @@ import RouterABI from '@/constants/ABI/routerABI.json'
 import { CHAIN_ID } from '@/config/constant'
 import { CHAINS } from '@/config/constant'
 import { Document, Types } from 'mongoose'
-import { executeSimulationTx, makeAddLpTransaction, makeApproveTransaction, makeBundleWalletTransaction, makeDeploymentTransaction } from '@/share/token'
+import { executeSimulationTx, makeAddLpTransaction, makeApproveTransaction, makeBundleWalletTransaction, makeDeploymentTransaction, getBundledWalletTransactionFee } from '@/share/token'
 import { Markup } from 'telegraf'
 import axios from 'axios'
 
@@ -18,13 +18,6 @@ export const menu = async (ctx: any) => {
     const tokens = []
 
     for (let i = 0; i < _launches.length; i += 2) {
-        // const element =
-        //     i + 1 >= _launches.length
-        //         ? [{ text: `${i + 1}. ${_launches[i].name}`, callback_data: `launch_preview_${_launches[i].id}` }]
-        //         : [
-        //               { text: `${i + 1}. ${_launches[i].name}`, callback_data: `launch_preview_${_launches[i].id}` },
-        //               { text: `${i + 2}. ${_launches[i + 1].name}`, callback_data: `launch_preview_${_launches[i + 1].id}` }
-        //           ]
         const element =
             i + 1 >= _launches.length
                 ? [{ text: `${i + 1}. ${_launches[i].name}`, callback_data: `pay_launchFilterFeeMenu_${_launches[i].id}` }]
@@ -235,9 +228,11 @@ const launchWithInstant = async (
     const CHAIN = CHAINS[chainId]
 
     console.log('::chain info:', CHAIN)
+
     try {
         // ----------------------------------------------------------------- variables for contract launch --------------------------------------------------------------------------------
-        const { lpEth, totalSupply, lpSupply, maxBuy, minBuy, bundledWallets } = launch
+        const { lpEth, totalSupply, lpSupply, maxBuy, minBuy, bundledWallets, instantLaunch } = launch
+
         const _jsonRpcProvider = new JsonRpcProvider(CHAIN.RPC)
         const _privteKey = decrypt(launch.deployer.key)
         // feeData
@@ -473,42 +468,106 @@ export const tokenLaunch = async (ctx: any, id: string) => {
 
         let contractAddress = ''
 
+        if (launch.instantLaunch) {
+            const provider = new JsonRpcProvider(CHAINS[CHAIN_ID].RPC)
+            let requiredEthPerWallet = launch.maxBuy * launch.lpEth * 0.01
+            const _privteKey = decrypt(launch.bundledWallets[0]?.key)
+            const wallet = new Wallet(_privteKey, provider)
+            const nonce = await wallet.getNonce()
+            // predict contract address
+            contractAddress = getCreateAddress({
+                from: wallet.address,
+                nonce: nonce
+            })
+            const _routerContract = new Contract(CHAIN.UNISWAP_ROUTER_ADDRESS, RouterABI, wallet)
+            const path = [await _routerContract.WETH(), contractAddress]
+            const deadline = Math.floor(Date.now() / 1000) + 60 * 20
+            const transactionGas = await getBundledWalletTransactionFee(CHAIN_ID, _routerContract, launch.bundledWallets[0]?.key, launch.minBuy, launch.maxBuy, launch.totalSupply, launch.lpEth, path, deadline)
+            const feeData = await provider.getFeeData()
+            const estimateFee = transactionGas * feeData.maxFeePerGas
+            console.log('estimateFee: ', estimateFee)
+            const requiredEth = Number(requiredEthPerWallet) + Number(formatEther(estimateFee))
+            const wallets = await Promise.all(
+                launch.bundledWallets.map(async (_wallet: { address: string; key: string }, i: number) => {
+                    const walletAddress = launch.bundledWallets[i].address
+                    try {
+                        // Get the balance in wei
+                        const balanceWei = await provider.getBalance(walletAddress)
+                        // Convert wei to ether
+                        const balanceEth = formatEther(balanceWei)
+                        const valid = Number(balanceEth) > Number(requiredEth)
+                        return {
+                            text: `🔹 <b>Wallet#${i + 1}</b> 🔹 \n  <code>${walletAddress}</code>\n   <i>*Required:</i> <code>${requiredEth} ETH</code> \n   <i>*Balance:</i> <code>${formatNumber(balanceEth)} ETH</code>  ${valid ? '' : '⚠'}\n\n`,
+                            valid: valid
+                        }
+                    } catch (err) {
+                        return {
+                            text: `🔹 <b>Wallet#${i + 1}</b> 🔹 \n  <code>${walletAddress}</code>\n   <i>*Required:</i> <code>${requiredEth} ETH</code> \n   <i>*Balance:</i> <code>0 ETH</code>  ⚠\n\n`,
+                            valid: false
+                        }
+                    }
+                })
+            )
+            let text = wallets.reduce((msg: string, w: { text: string; valid: boolean }) => msg + w.text, '')
+            const inValid = wallets.filter((w: { text: string; valid: boolean }) => !w.valid).length > 0
+
+            if (inValid) {
+                text += `⚠ Some wallets has no enough ETH to buy tokens as soon as swap is enabled.\n\n`
+                await ctx.reply(text, {
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        one_time_keyboard: true,
+                        resize_keyboard: true,
+                        inline_keyboard: [
+                            [
+                                { text: '← Back', callback_data: `launch_preview_${id}` },
+                                { text: 'Try Again', callback_data: `launch_token_${id}` }
+                            ]
+                        ]
+                    }
+                })
+
+                return
+            }
+        }
+
         //if launch is instant or autoLP
         if (launch.instantLaunch || launch.autoLP) {
             const { bundleSignedTxs, address } = launch.instantLaunch ? await launchWithInstant(chainId, launch, abi, bytecode) : await launchWithAutoLP(chainId, launch, abi, bytecode)
-            // await Promise.all(bundleSignedTxs.map((b) => executeSimulationTx(chainId, b)))
+            await Promise.all(bundleSignedTxs.map((b) => executeSimulationTx(chainId, b)))
             ////////////////////////////////////////// sending bundle using blockrazor ///////////////////////////////////////////////
-            const _jsonRpcProvider = new JsonRpcProvider(CHAIN.RPC)
-            const blockNumber: number = await _jsonRpcProvider.getBlockNumber()
-            const nextBlock = blockNumber
-            const requestData = {
-                jsonrpc: '2.0',
-                id: '1',
-                method: 'eth_sendMevBundle',
-                params: [
-                    {
-                        txs: bundleSignedTxs, // List of signed raw transactions
-                        maxBlockNumber: nextBlock + 100 // The maximum block number for the bundle to be valid, with the default set to the current block number + 100
-                        // "minTimestamp":1710229370,   // Expected minimum Unix timestamp (in seconds) for the bundle to be valid
-                        // "maxTimestamp":1710829390,   // Expected maximum Unix timestamp (in seconds) for the bundle to be valid
-                    }
-                ]
-            }
-            const config = {
-                headers: {
-                    'Content-Type': 'application/json'
-                    // Authorization: AUTH_HEADER
-                }
-            }
-            try {
-                console.log('::sending bundles...')
-                const response = await axios.post(`https://bsc.blockrazor.xyz/${process.env.BLOCK_API_KEY}`, requestData, config)
-                console.log('::sent...')
-                console.log('response.data: ', response.data)
-            } catch (error) {
-                console.error('Error in sending bundle transaction:')
-                throw 'Error in sending bundle transaction'
-            }
+            // const _jsonRpcProvider = new JsonRpcProvider(CHAIN.RPC)
+            // const blockNumber: number = await _jsonRpcProvider.getBlockNumber()
+            // const nextBlock = blockNumber
+            // const requestData = {
+            //     jsonrpc: '2.0',
+            //     id: '1',
+            //     method: 'eth_sendMevBundle',
+            //     params: [
+            //         {
+            //             txs: bundleSignedTxs, // List of signed raw transactions
+            //             maxBlockNumber: nextBlock + 100 // The maximum block number for the bundle to be valid, with the default set to the current block number + 100
+            //             // "minTimestamp":1710229370,   // Expected minimum Unix timestamp (in seconds) for the bundle to be valid
+            //             // "maxTimestamp":1710829390,   // Expected maximum Unix timestamp (in seconds) for the bundle to be valid
+            //         }
+            //     ]
+            // }
+            // const config = {
+            //     headers: {
+            //         'Content-Type': 'application/json'
+            //         // Authorization: AUTH_HEADER
+            //     }
+            // }
+            // try {
+            //     console.log('::sending bundles...')
+            //     const response = await axios.post(`https://bsc.blockrazor.xyz/${process.env.BLOCK_API_KEY}`, requestData, config)
+            //     console.log('::sent...')
+            //     console.log('response.data: ', response.data)
+            // } catch (error) {
+            //     console.error('Error in sending bundle transaction:')
+            //     throw 'Error in sending bundle transaction'
+            // }
+            ////////////////////////////////////////// end sending bundle using blockrazor ///////////////////////////////////////////////
 
             contractAddress = address as string
             console.log('::ended::::')
@@ -616,7 +675,7 @@ export const tokenLaunch = async (ctx: any, id: string) => {
                     resize_keyboard: true,
                     inline_keyboard: [
                         [
-                            { text: '← Back', callback_data: `launch_preview_` },
+                            { text: '← Back', callback_data: `launch_preview_${id}` },
                             { text: 'Try Again', callback_data: `launch_token_${id}` }
                         ]
                     ]

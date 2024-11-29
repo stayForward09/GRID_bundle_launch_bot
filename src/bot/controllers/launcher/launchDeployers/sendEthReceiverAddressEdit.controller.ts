@@ -13,6 +13,7 @@ export const enterScene = async (ctx: any) => {
             resize_keyboard: true
         }
     })
+    ctx.session.message_id = message_id
     
 }
 
@@ -38,6 +39,6 @@ export const textHandler = async (ctx: any) => {
                 resize_keyboard: true
             }
         })
-        
+        ctx.session.message_id = message_id
     }
 }

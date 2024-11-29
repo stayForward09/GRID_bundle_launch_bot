@@ -45,7 +45,14 @@ import {
     contractBurnLpEditScene,
     contractRemoveLpEditScene,
     walletToAddressEditScene,
-    walletSendAmountEditScene
+    walletSendAmountEditScene,
+    tokenSendAmountEditScene,
+    tokenToAddressEditScene,
+    walletFromEditScene,
+    walletToEditScene,
+    walletAmountEditScene,
+    tokenDeployerAddrEditScene,
+    tokenDeployerAmountEditScene
 } from '@/bot/scenes'
 import { saveOldMsgIds } from '@/share/utils'
 
@@ -88,7 +95,14 @@ export default () => {
         contractBurnLpEditScene,
         contractRemoveLpEditScene,
         walletToAddressEditScene,
-        walletSendAmountEditScene
+        walletSendAmountEditScene,
+        tokenSendAmountEditScene,
+        tokenToAddressEditScene,
+        walletFromEditScene,
+        walletToEditScene,
+        walletAmountEditScene,
+        tokenDeployerAddrEditScene,
+        tokenDeployerAmountEditScene
     ])
     _bot.use(session({ defaultSession: () => ({ currentSelectType: '' }) }))
     // use tg scene's middlewares
@@ -96,20 +110,20 @@ export default () => {
     // save msg
     _bot.use(async (ctx: any, next: any) => {
         if (ctx.message) {
-            const { message_id } = ctx.message; // Get the incoming message ID
+            const { message_id } = ctx.message // Get the incoming message ID
             ctx.session.lastMsgId = message_id
             saveOldMsgIds(ctx, message_id)
         }
         // make reply
-        const originalReply = ctx.reply.bind(ctx);
+        const originalReply = ctx.reply.bind(ctx)
         ctx.reply = async (text: string, extra: any) => {
             const sentMessage = await originalReply(text, extra) // Send the message
             if (sentMessage) {
                 saveOldMsgIds(ctx, sentMessage.message_id) // Store the outgoing message ID
             }
-            return sentMessage; // Return the sent message object
-        };
-        return next(); // Proceed to the next handler
+            return sentMessage // Return the sent message object
+        }
+        return next() // Proceed to the next handler
     })
     // set commands
     const commands = [

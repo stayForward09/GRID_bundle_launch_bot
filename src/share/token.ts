@@ -53,6 +53,24 @@ export const makeApproveTransaction = async (chainId: number, contractAddress: s
     }
 }
 /**
+ *
+ * @param chainId
+ * @param contractAddress
+ * @param tokenAmount
+ * @param provider
+ * @returns
+ */
+export const getApproveTransactionFee = async (chainId: number, contractAddress: string, tokenAmount: bigint, provider: JsonRpcProvider) => {
+    try {
+        const _tokenContract = new Contract(contractAddress, ContractABI, provider)
+        const _routerAddress = CHAINS[chainId].UNISWAP_ROUTER_ADDRESS
+        const value = await _tokenContract.approve.estimateGas(_routerAddress, tokenAmount)
+        return value
+    } catch (err) {
+        return BigInt(0)
+    }
+}
+/**
  * make addLP transaction data
  * @param chainId
  * @param contractAddress
@@ -87,6 +105,36 @@ export const makeAddLpTransaction = async (chainId: number, contractAddress: str
         gasLimit: 1000000,
         nonce: nonce,
         type: 2
+    }
+}
+/**
+ *
+ * @param chainId
+ * @param contractAddress
+ * @param tokenAmount
+ * @param lpEth
+ * @param deadline
+ * @param provider
+ * @returns
+ */
+export const getAddLpTransactionFee = async (chainId: number, contractAddress: string, tokenAmount: bigint, lpEth: number, deadline: number, wallet: Wallet) => {
+    try {
+        const CHAIN = CHAINS[chainId]
+        const _routerContract = new Contract(CHAIN.UNISWAP_ROUTER_ADDRESS, RouterABI, wallet)
+        const ethAmount = parseEther(String(lpEth))
+        console.log('')
+        const value = await _routerContract.addLiquidityETH.estimateGas(
+            contractAddress,
+            tokenAmount, // The amount of tokens
+            0, // Minimum amount of tokens (set to 0 for no minimum)
+            0, // Minimum amount of ETH (set to 0 for no minimum)
+            wallet.address, // The wallet address
+            deadline, // Transaction deadline
+            { value: ethAmount } // ETH amount being sent with the transaction
+        )
+        return value
+    } catch (err: any) {
+        return BigInt(0)
     }
 }
 /**
@@ -158,6 +206,44 @@ export const makeBundleWalletTransaction = async (
         )
     }
     return signedTxs
+}
+/**
+ *
+ * @param chainId
+ * @param routerContract
+ * @param deployer
+ * @param minBuy
+ * @param maxBuy
+ * @param totalSupply
+ * @param lpEth
+ * @param path
+ * @param deadline
+ */
+export const getBundledWalletTransactionFee = async (chainId: number, routerContract: Contract, deployer: string, minBuy: number, maxBuy: number, totalSupply: number, lpEth: number, path: string[], deadline: number) => {
+    try {
+        const CHAIN = CHAINS[chainId]
+        const provider = new JsonRpcProvider(CHAIN.RPC)
+        const privteKey = decrypt(deployer)
+        const wallet = new Wallet(privteKey, provider)
+        const percent = getBetweenNumber(minBuy, maxBuy)
+        // console.log(`::bundledWallet ${index}`, { token: Math.ceil(totalSupply * percent * 0.01), eth: localeNumber(lpEth * percent * 0.01) })
+
+        const tokenAmount = Math.ceil(totalSupply * percent * 0.01)
+        const ethAmountPay = parseEther(localeNumber(lpEth * percent * 0.01))
+        console.log("ethAmountPay: ", ethAmountPay)
+        console.log("tokenAmount: ", tokenAmount)
+        // Set your wallet's private key (Use environment variables or .env in real apps)
+        const value = await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens.estimateGas(
+            tokenAmount,
+            path,
+            wallet.address, // The wallet address
+            deadline, // Transaction deadline
+            { value: ethAmountPay } // ETH amount being sent with the transaction
+        )
+        return value
+    } catch (err: any) {
+        return BigInt(0)
+    }
 }
 /**
  * execute signed tx using ethers

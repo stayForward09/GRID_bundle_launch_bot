@@ -9,8 +9,8 @@ import { payLaunchFilterFee, payLaunchFilterFeeMenu, previewLaunch, tokenLaunch 
 import { detail as tokenDetail } from '@/bot/controllers/tokens'
 import { deleteLaunch, manageLaunchDetails, menu as manageLaunchMenu } from '@/bot/controllers/launcher/manageLaunch.controller'
 import { launchVariablesMenu } from '@/bot/controllers/launcher/launchVariables'
-import { estimateDeploymentCost, manageDeployer, predictContractAddress, sendEth, sendEthConfirm, sendToken, sendTokenConfirm } from '@/bot/controllers/launcher/launchDeployers'
-import { createWallets, generateWallets, manageWallets, saveWallets, sendEthWallet, sendEthConfirmWallet } from '@/bot/controllers/launcher/manageWallets'
+import { estimateDeploymentCost, manageDeployer, predictContractAddress, sendEth, sendEthConfirm, sendToken, sendTokenConfirmDeployer } from '@/bot/controllers/launcher/launchDeployers'
+import { createWallets, generateWallets, manageWallets, saveWallets, sendEthWallet, sendEthConfirmWallet, emptyAllWallets, sendTokenDeployer, sendTokenDeployerConfirm, sendTokenWallet, sendTokenWalletConfirm } from '@/bot/controllers/launcher/manageWallets'
 import { bundledWalletsMenu } from '@/bot/controllers/launcher/bundledWallets'
 import { replyWithUpdatedMessage, showNotification } from '@/share/utils'
 import { ownershipSetting, transferOwnershipConfirm, transferOwnership, renounceOwnershipConfirm, renounceOwnership } from '@/bot/controllers/tokens/ownershipSettings'
@@ -186,9 +186,19 @@ export const callbackQuery = async (ctx: any) => {
     } else if (selectedOption.startsWith('send_token_')) {
         sendToken(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('sendToken_confirm_')) {
-        sendTokenConfirm(ctx, selectedOption.split('_')[2])
+        sendTokenConfirmDeployer(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('send_tokenDeployer_')) {
+        sendTokenDeployer(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('sendTokenDeployer_confirm_')) {
+        sendTokenDeployerConfirm(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('send_tokenWallet_')) {
+        sendTokenWallet(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('sendTokenWallet_confirm_')) {
+        sendTokenWalletConfirm(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('send_ethWallet_')) {
         sendEthWallet(ctx, selectedOption.split('_')[2])
+    } else if (selectedOption.startsWith('manage_emptyWallets_')) {
+        emptyAllWallets(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('sendEth_confirmWallet_')) {
         sendEthConfirmWallet(ctx, selectedOption.split('_')[2])
     } else if (selectedOption.startsWith('estimate_DeploymentCost_')) {

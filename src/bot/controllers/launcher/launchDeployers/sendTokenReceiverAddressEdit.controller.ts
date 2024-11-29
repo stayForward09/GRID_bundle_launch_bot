@@ -1,10 +1,11 @@
-import { sendEth } from '.'
+import { isAddress } from 'ethers'
+import { sendEth, sendToken } from '.'
 import { deleteMessage, deleteOldMessages, checkExit, saveOldMsgIds } from '@/share/utils'
 
 export const enterScene = async (ctx: any) => {
     deleteOldMessages(ctx)
 
-    const { message_id } = await ctx.reply(`<b>Enter the amount of token you want to send:</b>\n`, {
+    const { message_id } = await ctx.reply(`<b>Enter the address you want to send to:</b>\n`, {
         parse_mode: 'HTML',
         reply_markup: {
             force_reply: true,
@@ -24,15 +25,12 @@ export const textHandler = async (ctx: any) => {
 
     deleteOldMessages(ctx)
 
-    try {
-        if (isNaN(_value)) throw `⚠ Input must be a valid number.`
-        if (_value <= 0) throw `⚠ Token amount must be greater than 0`
-
-        ctx.session.ethReceiverAmount = _value
+    if (isAddress(_value)) {
+        ctx.session.tokenReceiverAddress = _value
         await ctx.scene.leave()
-        sendEth(ctx, id)
-    } catch (err) {
-        const { message_id } = await ctx.reply(String(err), {
+        sendToken(ctx, id)
+    } else {
+        const { message_id } = await ctx.reply(`⚠ Address must be valid ETH address.`, {
             parse_mode: 'HTML',
             reply_markup: {
                 force_reply: true,

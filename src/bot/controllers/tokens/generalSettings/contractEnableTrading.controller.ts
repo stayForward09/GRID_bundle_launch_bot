@@ -1,43 +1,107 @@
 import Tokens from '@/models/Tokens'
 import RouterABI from '@/constants/ABI/routerABI.json'
 import { CHAINS, CHAIN_ID } from '@/config/constant'
-import { decrypt, replyWithUpdatedMessage } from '@/share/utils'
-import { Contract, JsonRpcProvider, Wallet, parseUnits } from 'ethers'
-import { executeSimulationTx, makeBundleWalletTransaction } from '@/share/token'
+import { decrypt, replyWithUpdatedMessage, formatNumber, showMessage } from '@/share/utils'
+import { Contract, JsonRpcProvider, Wallet, parseUnits, ethers } from 'ethers'
+import { executeSimulationTx, makeBundleWalletTransaction, getBundledWalletTransactionFee } from '@/share/token'
+import { formatEther } from 'ethers'
 import { Markup } from 'telegraf'
+import Launches from '@/models/Launch'
 
 export const enableTrandingMenu = async (ctx: any, id: string) => {
-    const token = await Tokens.findById(id)
+    try {
+        showMessage(ctx, '⏰ Loading Wallets...')
 
-    if (!token) {
-        return ctx.reply('⚠ There is no token for this id')
-    }
+        const CHAIN = CHAINS[CHAIN_ID]
+        const token = await Tokens.findById(id)
 
-    const bundles = `<b>● Bundled Wallet <code>#${1}</code></b>\n` + `<code>${token.bundledWallets[0]?.address}</code>`
-
-    const text =
-        `<b>Enable Trading</b>\n` +
-        `This will allow users to Swap <code>${token.symbol}</code> on Uniswap.\n\n` +
-        (token.bundledWallets.length > 0
-            ? `<i>ℹ You have <code>${token.bundledWallets.length}</code> bundled wallets for this token, they will automatically buy tokens at the same time as you activate the swap.</i>\n\n`
-            : '<i>ℹ You have <code>NO</code> bundled wallet for this token, so you cannot purchase the token at the same time as enabling the transaction.</i>\n\n') +
-        (!token.lpAdded ? `<i>⚠ Liquidity was not been provided yet. Before you can make your token tradable, you need to add liquidity to it.</i>\n\n` : '') +
-        bundles
-
-    const settings = {
-        parse_mode: 'HTML',
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: '⚡ Enable Trading', callback_data: `enable_trading_${id}` }],
-                [
-                    // { text: '↻ Refresh', callback_data: `enable_tradingMenu_${id}` },
-                    { text: '← Back', callback_data: `general_settings_${id}` }
-                ]
-            ],
-            resize_keyboard: true
+        if (!token) {
+            return ctx.reply('⚠ There is no token for this id')
         }
+
+        let text =
+            `<b>Enable Trading</b>\n` +
+            `This will allow users to Swap <code>${token.symbol}</code> on Uniswap.\n\n` +
+            (token.bundledWallets.length > 0
+                ? `<i>ℹ You have <code>${token.bundledWallets.length}</code> bundled wallets for this token, they will automatically buy tokens at the same time as you activate the swap.</i>\n\n`
+                : '<i>ℹ You have <code>NO</code> bundled wallet for this token, so you cannot purchase the token at the same time as enabling the transaction.</i>\n\n') +
+            (!token.lpAdded ? `<i>⚠ Liquidity was not been provided yet. Before you can make your token tradable, you need to add liquidity to it.</i>\n\n` : '')
+        const bundles = `<b>● Bundled Wallet <code>#${1}</code></b>\n` + `<code>${token.bundledWallets[0]?.address}</code>`
+
+        const provider = new JsonRpcProvider(CHAIN.RPC)
+        const { bundledWallets, lpEth, maxBuy } = token
+        let requiredEthPerWallet = maxBuy * lpEth * 0.01
+        const _privteKey = decrypt(token.bundledWallets[0]?.key)
+        const wallet = new Wallet(_privteKey, provider)
+        const _routerContract = new Contract(CHAIN.UNISWAP_ROUTER_ADDRESS, RouterABI, wallet)
+        const path = [await _routerContract.WETH(), token.address]
+        const deadline = Math.floor(Date.now() / 1000) + 60 * 20
+        const transactionGas = await getBundledWalletTransactionFee(CHAIN_ID, _routerContract, token.bundledWallets[0]?.key, token.minBuy, token.maxBuy, token.totalSupply, token.lpEth, path, deadline)
+        const feeData = await provider.getFeeData()
+        const estimateFee = transactionGas * feeData.maxFeePerGas
+        console.log('estimateFee: ', estimateFee)
+        const requiredEth = Number(requiredEthPerWallet) + Number(formatEther(estimateFee))
+        const wallets = await Promise.all(
+            token.bundledWallets.map(async (_wallet: { address: string; key: string }, i: number) => {
+                const walletAddress = token.bundledWallets[i].address
+                try {
+                    // Get the balance in wei
+                    const balanceWei = await provider.getBalance(walletAddress)
+                    // Convert wei to ether
+                    const balanceEth = ethers.formatEther(balanceWei)
+                    const valid = Number(balanceEth) > Number(requiredEth)
+                    return {
+                        text: `🔹 <b>Wallet#${i + 1}</b> 🔹 \n  <code>${walletAddress}</code>\n   <i>*Required:</i> <code>${requiredEth} ETH</code> \n   <i>*Balance:</i> <code>${formatNumber(balanceEth)} ETH</code>  ${valid ? '' : '⚠'}\n\n`,
+                        valid: valid
+                    }
+                } catch (err) {
+                    return {
+                        text: `🔹 <b>Wallet#${i + 1}</b> 🔹 \n  <code>${walletAddress}</code>\n   <i>*Required:</i> <code>${requiredEth} ETH</code> \n   <i>*Balance:</i> <code>0 ETH</code>  ⚠\n\n`,
+                        valid: false
+                    }
+                }
+            })
+        )
+
+        text += wallets.reduce((msg: string, w: { text: string; valid: boolean }) => msg + w.text, '')
+
+        const inValid = wallets.filter((w: { text: string; valid: boolean }) => !w.valid).length > 0
+
+        if (inValid) {
+            text += `\n⚠ Some wallets has no enough ETH to buy tokens as soon as swap is enabled.\n\n`
+        }
+
+        console.log({ inValid })
+
+        const settings = {
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [
+                    [inValid ? { text: '⚠ Please check above warnings', callback_data: `#` } : { text: '⚡ Enable Trading', callback_data: `enable_trading_${id}` }],
+                    [
+                        // { text: '↻ Refresh', callback_data: `enable_tradingMenu_${id}` },
+                        { text: '← Back', callback_data: `general_settings_${id}` }
+                    ]
+                ],
+                resize_keyboard: true
+            }
+        }
+        replyWithUpdatedMessage(ctx, text, settings)
+    } catch (error) {
+        await ctx.reply(`<b>❌ Failed in estimating swap Eanble. Please contact with support team</b>`, {
+            parse_mode: 'HTML',
+            reply_markup: {
+                one_time_keyboard: true,
+                resize_keyboard: true,
+                inline_keyboard: [
+                    [
+                        { text: '← Back', callback_data: `enable_tradingMenu_${id}` }
+                        // { text: 'Try Again', callback_data: `launch_token_${id}` }
+                    ]
+                ]
+            }
+        })
     }
-    replyWithUpdatedMessage(ctx, text, settings)
 }
 
 export const enableTranding = async (ctx: any, id: string) => {

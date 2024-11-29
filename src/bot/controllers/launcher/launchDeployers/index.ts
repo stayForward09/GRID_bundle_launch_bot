@@ -1,10 +1,11 @@
 import Launches from '@/models/Launch'
 import Tokens from '@/models/Tokens'
 import { CHAIN_ID, CHAINS } from '@/config/constant'
-import { catchContractErrorException, compileContract, formatNumber, replyWithUpdatedMessage } from '@/share/utils'
+import { catchContractErrorException, compileContract, compileContractForEstimation, formatNumber, replyWithUpdatedMessage } from '@/share/utils'
 import { Contract, ContractFactory, ethers, formatEther, isAddress, JsonRpcProvider, parseEther, Wallet } from 'ethers'
 import { decrypt } from '@/share/utils'
 import { Markup } from 'telegraf'
+import { getAddLpTransactionFee, getApproveTransactionFee } from '@/share/token'
 
 export const manageDeployer = async (ctx: any, id: string) => {
     const CHAIN = CHAINS[CHAIN_ID]
@@ -99,6 +100,7 @@ export const sendEth = async (ctx: any, id: string) => {
 }
 
 export const sendToken = async (ctx: any, id: string) => {
+    console.log('here')
     const token = await Tokens.findById(id.substr(5))
 
     const CHAIN = CHAINS[CHAIN_ID]
@@ -110,18 +112,17 @@ export const sendToken = async (ctx: any, id: string) => {
     const contract = new Contract(token.address, token.abi, provider)
     const _tokenBalance = await contract.balanceOf(deployerAddress)
 
-    const receiverAddress = ctx.session?.ethReceiveAddress
-    const amount = ctx.session?.ethReceiverAmount
+    const receiverAddress = ctx.session?.tokenReceiverAddress
+    const amount = ctx.session?.tokenReceiverAmount
     console.log('receiverAddress:amount', receiverAddress, amount)
 
     const text =
         `<b>Deployer Send [$${token.symbol}]</b>\n` +
         `Use this to send ${token.symbol} to another address. Please check following details.\n\n` +
-        `▰ <a href='${CHAIN.explorer}/address/${deployerAddress}'>deployer</a> ▰\n` +
+        `▰ <a href='${CHAIN.explorer}address/${deployerAddress}'>deployer</a> ▰\n` +
         `<code>${deployerAddress}</code>\n` +
         `<b>ETH Balance:</b> <code>${formatNumber(formatEther(balanceWei))} ETH </code>\n` +
-        `<b>${token.symbol} Balance:</b> <code>${formatNumber(formatEther(_tokenBalance))} ETH </code>\n`
-
+        `<b>${token.symbol} Balance:</b> <code>${formatNumber(formatEther(_tokenBalance))} ${token.symbol} </code>\n`
     const settings = {
         parse_mode: 'HTML',
         reply_markup: {
@@ -131,8 +132,8 @@ export const sendToken = async (ctx: any, id: string) => {
             disable_web_page_preview: true,
             inline_keyboard: [
                 [
-                    { text: `Receiver: ${receiverAddress ? receiverAddress : 'Unset'}`, callback_data: `scene_ethToAddressEditScene_${id}` },
-                    { text: `Amount: ${amount ? amount : '0.0'} ${token.symbol}`, callback_data: `scene_ethSendAmountEditScene_${id}` }
+                    { text: `Receiver: ${receiverAddress ? receiverAddress : 'Unset'}`, callback_data: `scene_tokenDeployerAddrEditScene_${id}` },
+                    { text: `Amount: ${amount ? amount : '0.0'} ${token.symbol}`, callback_data: `scene_tokenDeployerAmountEditScene_${id}` }
                 ],
                 [
                     { text: '← Back', callback_data: `manage_deployer_${id}` },
@@ -167,7 +168,7 @@ export const sendEthConfirm = async (ctx: any, id: string) => {
             })
             return
         }
-        const amountWei = ethers.parseEther(amountInEther.toString())
+        const amountWei = ethers.parseEther(amountInEther.toFixed(18))
         // Get the balance in wei
         await ctx.reply(`⏰ Checking Balance...`)
         const balanceWei = await provider.getBalance(deployerAddress)
@@ -225,10 +226,14 @@ export const sendEthConfirm = async (ctx: any, id: string) => {
         catchContractErrorException(ctx, err, CHAIN, launch?.deployer?.address, `send_eth_${id}`, 'Error while Sending ETH')
     }
 }
-
-export const sendTokenConfirm = async (ctx: any, id: string) => {
+/**
+ * when click confirm button to send tokens form deployer
+ * @param ctx
+ * @param id
+ * @returns
+ */
+export const sendTokenConfirmDeployer = async (ctx: any, id: string) => {
     ctx.session.mainMsgId = undefined
-
     const token = await Tokens.findById(id.substr(5))
     const CHAIN = CHAINS[CHAIN_ID]
     try {
@@ -237,7 +242,8 @@ export const sendTokenConfirm = async (ctx: any, id: string) => {
         const deployerAddress = token.deployer?.address
         const wallet = new Wallet(privateKey, provider)
         // Convert the amount from ether to wei
-        const amountInEther = Number(ctx.session?.ethReceiverAmount)
+        const amountInEther = Number(ctx.session?.tokenReceiverAmount)
+        console.log('amountInEther: ', amountInEther)
         if (isNaN(amountInEther)) {
             replyWithUpdatedMessage(ctx, `⚠ Invalid Token amount to send. Please try again after checking.`, {
                 parse_mode: 'HTML',
@@ -249,7 +255,7 @@ export const sendTokenConfirm = async (ctx: any, id: string) => {
             })
             return
         }
-        const amountWei = ethers.parseEther(amountInEther.toString())
+        const amountWei = ethers.parseEther(amountInEther.toFixed(18))
         // Get the balance in wei
         await ctx.reply(`⏰ Checking Balance...`)
         // contract
@@ -258,7 +264,7 @@ export const sendTokenConfirm = async (ctx: any, id: string) => {
         const _tokenBalanceInEther = formatEther(_tokenBalance)
         //balance checking
         if (Number(_tokenBalanceInEther) < Number(amountInEther)) {
-            replyWithUpdatedMessage(ctx, `<b>⚠ You don't have enough Tokens in your deployer wallet\n</b>Required <code>${amountInEther}ETH</code>, but has only <code>${_tokenBalanceInEther}ETH</code>`, {
+            replyWithUpdatedMessage(ctx, `<b>⚠ You don't have enough Tokens in your deployer wallet\n</b>Required <code>${amountInEther} ${token.symbol}</code>, but has only <code>${_tokenBalanceInEther}${token.symbol}</code>`, {
                 parse_mode: 'HTML',
                 reply_markup: {
                     one_time_keyboard: true,
@@ -270,7 +276,7 @@ export const sendTokenConfirm = async (ctx: any, id: string) => {
         }
 
         // Create the transaction object
-        const toAddress = ctx.session?.ethReceiveAddress
+        const toAddress = ctx.session?.tokenReceiverAddress
         // receiver checking
         if (!isAddress(toAddress)) {
             replyWithUpdatedMessage(ctx, `<b>⚠ Invalid ETH address\n</b><code>${toAddress}</code> must be valid ETH address.`, {
@@ -300,7 +306,7 @@ export const sendTokenConfirm = async (ctx: any, id: string) => {
         replyWithUpdatedMessage(ctx, `🌺 Successfuly sent <code>${formatNumber(amountInEther)} ${token.symbol}</code> to <code>${toAddress}</code>. You can check following details.`, {
             parse_mode: 'HTML',
             reply_markup: {
-                inline_keyboard: [[Markup.button.url(`👁 View On Etherscan`, `${CHAIN.explorer}/tx/${receipt.hash}`)], [{ text: '← Back', callback_data: `send_token_${id}` }]],
+                inline_keyboard: [[Markup.button.url(`👁 View On Etherscan`, `${CHAIN.explorer}tx/${receipt.hash}`)], [{ text: '← Back', callback_data: `send_token_${id}` }]],
                 resize_keyboard: true
             }
         })
@@ -317,7 +323,8 @@ export const estimateDeploymentCost = async (ctx: any, id: string) => {
         return
     }
     try {
-        const { abi, bytecode, sourceCode } = (await compileContract({
+        ctx.reply(`🕐 Compiling contract...`)
+        const { abi, bytecode, sourceCode } = (await compileContractForEstimation({
             chainId: CHAIN_ID,
             name: launch.name,
             symbol: launch.symbol,
@@ -337,31 +344,58 @@ export const estimateDeploymentCost = async (ctx: any, id: string) => {
         })) as any
         console.log('::succssfully complied')
         const _jsonRpcProvider = new JsonRpcProvider(CHAIN.RPC)
-        // const _privteKey = decrypt(launch.deployer.key);
-        const _privteKey = launch.deployer.key
-        // Set your wallet's private key (Use environment variables or .env in real apps)
+        const _privteKey = decrypt(launch.deployer.key)
         const wallet = new Wallet(_privteKey, _jsonRpcProvider)
+
+        // Get the nonce
+        const nonce = await wallet.getNonce()
+        // Calculate the contract address
+        const contractAddress = ethers.getCreateAddress({
+            from: wallet.address,
+            nonce: nonce
+        })
         // Create a contract factory
-        const contractFactory = new ContractFactory(abi, bytecode, wallet)
+        const contractFactory = new ContractFactory(abi, bytecode, _jsonRpcProvider)
         // Get current gas price
-        const gasPrice = (await _jsonRpcProvider.getFeeData()).gasPrice
-        console.log('gasPrice', gasPrice)
+        const gasPrice = (await _jsonRpcProvider.getFeeData()).maxFeePerGas
         // Estimate gas
         const deploymentTx = await contractFactory.getDeployTransaction()
-        const estimatedGas = await _jsonRpcProvider.estimateGas(deploymentTx)
-        console.log('estimate', estimatedGas)
+        const deploymentFee = await _jsonRpcProvider.estimateGas(deploymentTx)
+        console.log('deploymentFee', deploymentFee)
+
+        // total deployment fee
+        let deploymentCost = 0
+
+        let approveFee = BigInt(0),
+            addLpFee = BigInt(0)
+        if (launch.autoLP || launch.instantLaunch) {
+            const tokenAmount = parseEther(String(launch.totalSupply))
+            const deadline = Math.floor(Date.now() / 1000) + 60 * 20
+
+            approveFee = await getApproveTransactionFee(CHAIN_ID, contractAddress, tokenAmount, _jsonRpcProvider)
+            addLpFee = await getAddLpTransactionFee(CHAIN_ID, contractAddress, tokenAmount, launch.lpEth, deadline, wallet)
+
+            deploymentCost += Number(process.env.FILTER_FEE_AMOUNT)
+        }
         // Calculate deployment cost in ETH
-        const deploymentCost = ethers.formatEther(estimatedGas * gasPrice)
-        console.log(`Estimated gas: ${estimatedGas.toString()}`)
+        deploymentCost += Number(ethers.formatEther((BigInt(deploymentFee) + approveFee + addLpFee) * gasPrice))
+
         console.log(`Current gas price: ${ethers.formatUnits(gasPrice, 'gwei')} gwei`)
         console.log(`Estimated deployment cost: ${deploymentCost} ETH`)
+        console.log('approveFee: ', approveFee)
+        console.log('addLpFee: ', addLpFee)
 
         const text =
             `<b>*Estimated Gas Cost*</b>\n` +
             `<b>Deployer:</b> <code>${launch?.deployer?.address}</code>\n\n` +
             `<b>Current Price:</b> <code>${ethers.formatUnits(gasPrice, 'gwei')} gwei</code>\n` +
-            `<b>Gas Cost:</b> <code>${deploymentCost} ETH</code>\n` +
-            `<b>Required Balance:</b> <code>${Number(deploymentCost) + 1} ETH</code>\n`
+            `<b>ConctractDeployment Cost:</b> <code>${ethers.formatUnits(deploymentFee, 'gwei')} gwei</code>\n` +
+            (launch.autoLP || launch.instantLaunch
+                ? `<b>Approve Fee:</b> <code>${ethers.formatUnits(approveFee, 'gwei')} gwei</code>\n` +
+                  `<b>AddLp Fee:</b> <code>${ethers.formatUnits(addLpFee, 'gwei')} gwei</code>\n` +
+                  `<b>Lp Eth:</b> <code>${process.env.FILTER_FEE_AMOUNT} ETH</code>\n`
+                : '') +
+            `<b>Required Balance:</b> <code>${Number(deploymentCost)} ETH</code>\n`
 
         replyWithUpdatedMessage(ctx, text, {
             parse_mode: 'HTML',
@@ -372,6 +406,7 @@ export const estimateDeploymentCost = async (ctx: any, id: string) => {
             }
         })
     } catch (err) {
+        console.log(err)
         catchContractErrorException(ctx, err, CHAIN, launch.deployer.address, `manage_deployer_${id}`, `<b>Error: </b><code>${String(err).split(':')[1]}</code>`)
     }
 }

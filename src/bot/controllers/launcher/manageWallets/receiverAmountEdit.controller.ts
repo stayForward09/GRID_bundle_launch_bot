@@ -5,7 +5,7 @@ import { checkExit } from '@/share/utils'
 export const enterScene = async (ctx: any) => {
     deleteOldMessages(ctx)
 
-    const { message_id } = await ctx.reply(`<b>Enter the amount of token you want to send:</b>\n`, {
+    const { message_id } = await ctx.reply(`<b>Enter the amount of ETH you want to send:</b>\n`, {
         parse_mode: 'HTML',
         reply_markup: {
             force_reply: true,

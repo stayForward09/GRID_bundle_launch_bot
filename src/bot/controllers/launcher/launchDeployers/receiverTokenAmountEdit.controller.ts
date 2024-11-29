@@ -1,4 +1,4 @@
-import { sendEth } from '.'
+import { sendEth, sendToken } from '.'
 import { deleteMessage, deleteOldMessages, checkExit, saveOldMsgIds } from '@/share/utils'
 
 export const enterScene = async (ctx: any) => {
@@ -28,9 +28,9 @@ export const textHandler = async (ctx: any) => {
         if (isNaN(_value)) throw `⚠ Input must be a valid number.`
         if (_value <= 0) throw `⚠ Token amount must be greater than 0`
 
-        ctx.session.ethReceiverAmount = _value
+        ctx.session.tokenReceiverAmount = _value
         await ctx.scene.leave()
-        sendEth(ctx, id)
+        sendToken(ctx, id)
     } catch (err) {
         const { message_id } = await ctx.reply(String(err), {
             parse_mode: 'HTML',

